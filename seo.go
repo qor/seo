@@ -1,6 +1,7 @@
 package seo
 
 import (
+	"database/sql/driver"
 	"github.com/qor/qor/admin"
 	"os"
 	"path"
@@ -9,6 +10,22 @@ import (
 )
 
 type Setting struct {
+	Data string
+}
+
+func (setting *Setting) Scan(value interface{}) error {
+	if bytes, ok := value.([]byte); ok {
+		setting.Data = string(bytes)
+	} else if str, ok := value.(string); ok {
+		setting.Data = str
+	} else if strs, ok := value.([]string); ok {
+		setting.Data = strs[0]
+	}
+	return nil
+}
+
+func (setting Setting) Value() (driver.Value, error) {
+	return setting.Data, nil
 }
 
 var injected bool
