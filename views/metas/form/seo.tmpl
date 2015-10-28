@@ -1,3 +1,10 @@
-Seo Fields
+{{$inputName := .Meta.Name}}
+{{$labelName := .Meta.Label}}
+{{$attributesScoped := printf "%v.attributes.%v" .Base.ToParam $labelName}}
+
+<div class="qor-location qor-field">
+  {{value_of .Value .Meta}}
+  <label class="qor-field__label" for="{{.InputId}}">{{dt $attributesScoped $labelName}}</label>
+</div>
 
 <input class="mdl-textfield__input" type="text" id="Seo_0_SiteHost" name="QorResource.ProductPage" value="abc">
