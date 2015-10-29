@@ -14,7 +14,7 @@ import (
 type Setting struct {
 	Title       string
 	Description string
-	Vars        string
+	Vars        []string
 }
 
 type settingInterface interface {
@@ -28,12 +28,17 @@ func (setting Setting) GetSetting() Setting {
 func (setting *Setting) Scan(value interface{}) error {
 	if bytes, ok := value.([]byte); ok {
 		json.Unmarshal(bytes, setting)
+	} else if str, ok := value.(string); ok {
+		json.Unmarshal([]byte(str), setting)
+	} else if strs, ok := value.([]string); ok {
+		json.Unmarshal([]byte(strs[0]), setting)
 	}
 	return nil
 }
 
 func (setting Setting) Value() (driver.Value, error) {
-	return setting.Title, nil
+	result, err := json.Marshal(setting)
+	return string(result), err
 }
 
 var injected bool
@@ -62,11 +67,15 @@ func (Setting) ConfigureQorResource(res *admin.Resource) {
 				meta = res.GetMeta(name)
 			}
 
-			tags := field.Tag.Get("seo")
+			var vars []string
+			tags := strings.Split(field.Tag.Get("seo"), ",")
+			for _, tag := range tags {
+				vars = append(vars, strings.Trim(tag, " "))
+			}
 			meta.Valuer = func(value interface{}, ctx *qor.Context) interface{} {
 				settingField, _ := ctx.GetDB().NewScope(value).FieldByName(name)
 				setting := settingField.Field.Interface().(settingInterface).GetSetting()
-				setting.Vars = tags
+				setting.Vars = vars
 				return setting
 			}
 		}
