@@ -3,8 +3,22 @@
 {{$attributesScoped := printf "%v.attributes.%v" .Base.ToParam $labelName}}
 
 <div class="qor-location qor-field">
-  {{value_of .Value .Meta}}
   <label class="qor-field__label" for="{{.InputId}}">{{dt $attributesScoped $labelName}}</label>
 </div>
 
-<input class="mdl-textfield__input" type="text" id="Seo_0_SiteHost" name="QorResource.ProductPage" value="abc">
+<div>
+  Meta: {{.Value.Vars}}
+</div>
+<div class="qor-field">
+  <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
+    <input class="mdl-textfield__input" type="text" id="{{.InputId}}Title" name="{{.InputName}}" {{if .Value}}value="{{.Value.Title}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+    <label class="mdl-textfield__label" for="{{.InputId}}Title">{{dt (printf "%v.title" .Base.ToParam) "HTML TITLE"}}</label>
+  </div>
+</div>
+
+<div class="qor-field">
+  <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
+    <input class="mdl-textfield__input" type="text" id="{{.InputId}}Description" name="{{.InputName}}" {{if .Value}}value="{{.Value.Description}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+    <label class="mdl-textfield__label" for="{{.InputId}}Description">{{dt (printf "%v.description" .Base.ToParam) "META DESCRIPTION"}}</label>
+  </div>
+</div>

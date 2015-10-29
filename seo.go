@@ -2,6 +2,7 @@ package seo
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"os"
@@ -13,15 +14,20 @@ import (
 type Setting struct {
 	Title       string
 	Description string
+	Vars        string
+}
+
+type settingInterface interface {
+	GetSetting() Setting
+}
+
+func (setting Setting) GetSetting() Setting {
+	return setting
 }
 
 func (setting *Setting) Scan(value interface{}) error {
 	if bytes, ok := value.([]byte); ok {
-		setting.Title = string(bytes)
-	} else if str, ok := value.(string); ok {
-		setting.Title = str
-	} else if strs, ok := value.([]string); ok {
-		setting.Title = strs[0]
+		json.Unmarshal(bytes, setting)
 	}
 	return nil
 }
@@ -58,7 +64,10 @@ func (Setting) ConfigureQorResource(res *admin.Resource) {
 
 			tags := field.Tag.Get("seo")
 			meta.Valuer = func(value interface{}, ctx *qor.Context) interface{} {
-				return tags
+				settingField, _ := ctx.GetDB().NewScope(value).FieldByName(name)
+				setting := settingField.Field.Interface().(settingInterface).GetSetting()
+				setting.Vars = tags
+				return setting
 			}
 		}
 	}
