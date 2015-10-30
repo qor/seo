@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"html/template"
 	"os"
 	"path"
 	"reflect"
@@ -80,4 +81,8 @@ func (Setting) ConfigureQorResource(res *admin.Resource) {
 			}
 		}
 	}
+}
+
+func (setting Setting) Render() template.HTML {
+	return template.HTML("<title>Title</title>\n<meta name=\"description\" content=\"Description\">")
 }
