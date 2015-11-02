@@ -86,18 +86,20 @@ func (Setting) ConfigureQorResource(res *admin.Resource) {
 }
 
 func (setting Setting) Render(mainObj interface{}, obj interface{}) template.HTML {
-	re := regexp.MustCompile("{{([a-zA-Z0-9]*)}}")
-	title := setting.Title
-	description := setting.Description
-	matches := re.FindAllStringSubmatch(title, -1)
-	for _, match := range matches {
-		value := reflect.ValueOf(mainObj).FieldByName(match[1]).Interface().(string)
-		title = strings.Replace(title, match[0], value, 1)
-	}
-	matches = re.FindAllStringSubmatch(description, -1)
-	for _, match := range matches {
-		value := reflect.ValueOf(mainObj).FieldByName(match[1]).Interface().(string)
-		description = strings.Replace(description, match[0], value, 1)
-	}
+	title := replaceVars(setting.Title, mainObj, obj)
+	description := replaceVars(setting.Description, mainObj, obj)
 	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">", title, description))
+}
+
+func replaceVars(originalVal string, mainObj interface{}, obj interface{}) string {
+	re := regexp.MustCompile("{{([a-zA-Z0-9]*)}}")
+	matches := re.FindAllStringSubmatch(originalVal, -1)
+	for _, match := range matches {
+		field := reflect.ValueOf(mainObj).FieldByName(match[1])
+		if field.IsValid() {
+			value := field.Interface().(string)
+			originalVal = strings.Replace(originalVal, match[0], value, 1)
+		}
+	}
+	return originalVal
 }
