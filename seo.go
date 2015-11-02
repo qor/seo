@@ -3,6 +3,7 @@ package seo
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"html/template"
@@ -84,5 +85,7 @@ func (Setting) ConfigureQorResource(res *admin.Resource) {
 }
 
 func (setting Setting) Render() template.HTML {
-	return template.HTML("<title>Title</title>\n<meta name=\"description\" content=\"Description\">")
+	title := setting.Title
+	description := setting.Description
+	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">", title, description))
 }

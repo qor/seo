@@ -1,6 +1,6 @@
 $(".qor-seo-submit").click(function(){
-  var fieldName = $(".qor-seo-field").attr("name");
   var $wrap = $(this).parents(".qor-seo");
+  var fieldName = $wrap.find(".qor-seo-field").attr("name");
   var titleValue = $wrap.find(".qor-seo-title-field").val();
   var descriptionValue = $wrap.find(".qor-seo-description-field").val();
   var data = {};
