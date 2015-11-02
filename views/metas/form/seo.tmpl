@@ -5,9 +5,9 @@
 <div class="qor-seo qor-field">
   <label class="qor-field__label" for="{{.InputId}}">{{dt $attributesScoped $labelName}}</label>
 
-  <div class="qor-seo-vars">
-    {{range .Value.Vars}}
-      <span class="qor-seo-var">
+  <div class="qor-seo-tags">
+    {{range .Value.TagsArray}}
+      <span class="qor-seo-tag">
         {{.}}
       </span>
     {{end}}
@@ -27,6 +27,7 @@
     </div>
   </div>
 
+  <input type="hidden" class="qor-seo-tags-field" value="{{.Value.Tags}}">
   <input type="hidden" class="qor-seo-field" name={{.InputName}} />
 
   <button class="qor-seo-submit mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit" data-upgraded=",MaterialButton,MaterialRipple">Save<span class="mdl-button__ripple-container"><span class="mdl-ripple"></span></span></button>
