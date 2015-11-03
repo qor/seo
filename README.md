@@ -26,3 +26,4 @@ Developer will define the above Go struct, It means End User can setup SiteName,
 
 The above definiation for Developer will generate the following Qor Adminstration backend. That End user can change text and variable of the whole site title, and description:
 
+![Administration UI](https://raw.githubusercontent.com/qor/seo/master/images/qor_meta.png)
