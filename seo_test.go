@@ -6,12 +6,20 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/test/utils"
 	"github.com/qor/seo"
+	"html/template"
+	"reflect"
 	"strings"
 	"testing"
 )
 
 var db *gorm.DB
 
+func init() {
+	db = utils.TestDB()
+	db.AutoMigrate(&Seo{}, &Category{})
+}
+
+// Modal
 type Seo struct {
 	gorm.Model
 	SiteName string
@@ -24,11 +32,11 @@ type Category struct {
 	URLTitle string
 }
 
-func init() {
-	db = utils.TestDB()
-	db.AutoMigrate(&Seo{}, &Category{})
+type mircoDataInferface interface {
+	Render() template.HTML
 }
 
+// Test Cases
 type RenderTestCase struct {
 	SiteName         string
 	HomePage         seo.Setting
@@ -37,6 +45,13 @@ type RenderTestCase struct {
 	Result           string
 }
 
+type MicroDataTestCase struct {
+	MicroDataType string
+	ModelObject   interface{}
+	HasTag        string
+}
+
+// Runner
 func TestRender(t *testing.T) {
 	var testCases []RenderTestCase
 	testCases = append(testCases,
@@ -63,6 +78,26 @@ func TestRender(t *testing.T) {
 			color.Green(fmt.Sprintf("Seo Render TestCase #%d: Success\n", i))
 		} else {
 			t.Errorf(color.RedString(fmt.Sprintf("\nSeo Render TestCase #%d: Failure Result:%s\n", i, string(metatHTML))))
+		}
+		i += 1
+	}
+}
+
+func TestMicrodata(t *testing.T) {
+	var testCases []MicroDataTestCase
+	testCases = append(testCases,
+		MicroDataTestCase{"Product", seo.MicroProduct{Name: ""}, `<span itemprop="name"></span>`},
+		MicroDataTestCase{"Product", seo.MicroProduct{Name: "Polo"}, `<span itemprop="name">Polo</span>`},
+		MicroDataTestCase{"Search", seo.MicroSearch{URL: "www.example.com"}, `www.example.com`},
+		MicroDataTestCase{"Contact", seo.MicroContact{Telephone: "86-401-302-313"}, `86-401-302-313`},
+	)
+	i := 1
+	for _, microDataTestCase := range testCases {
+		tagHTML := reflect.ValueOf(microDataTestCase.ModelObject).Interface().(mircoDataInferface).Render()
+		if strings.Contains(string(tagHTML), microDataTestCase.HasTag) {
+			color.Green(fmt.Sprintf("Seo Micro TestCase #%d: Success\n", i))
+		} else {
+			t.Errorf(color.RedString(fmt.Sprintf("\nSeo Micro TestCase #%d: Failure Result:%s\n", i, string(tagHTML))))
 		}
 		i += 1
 	}
