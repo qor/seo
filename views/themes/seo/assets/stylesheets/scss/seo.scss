@@ -1,0 +1,28 @@
+.qor-seo-tags{
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	.qor-seo-tag{
+		float:left;
+		margin-right: 20px;
+		&.focus{
+			cursor: pointer;
+			i,span{
+				color: rgba(0,0,0,.54);
+			}
+			&:hover{
+				span{
+					text-decoration: underline;
+				}
+			}
+		}
+
+	}
+	i,span{
+		display: inline-block;
+		vertical-align: middle;
+		color: rgba(0,0,0,.26);
+		margin-right: 6px;
+
+	}
+}

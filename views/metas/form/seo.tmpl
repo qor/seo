@@ -3,26 +3,24 @@
 {{$attributesScoped := printf "%v.attributes.%v" .Base.ToParam $labelName}}
 
 <div class="qor-seo qor-field">
-  <label class="qor-field__label" for="{{.InputId}}">{{dt $attributesScoped $labelName}}</label>
+  <h4 class="qor-section-title">{{dt $attributesScoped $labelName}}</h4>
 
-  <div class="qor-seo-tags">
+  <ul class="qor-seo-tags clearfix" data-input-id={{.InputId}}>
     {{range .Value.TagsArray}}
-      <span class="qor-seo-tag">
-        {{.}}
-      </span>
+      <li class="qor-seo-tag" data-tag-value="{{.}}"><i class="material-icons">add_box</i><span>{{.}}</span></li>
     {{end}}
-  </div>
+  </ul>
 
   <div class="qor-field">
     <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
-      <input class="qor-seo-title-field mdl-textfield__input" type="text" id="{{.InputId}}_Title" name="{{.InputName}}.Title" {{if .Value}}value="{{.Value.Title}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+      <input class="qor-seo-input-field qor-seo-title-field mdl-textfield__input" type="text" id="{{.InputId}}_Title" name="{{.InputName}}.Title" {{if .Value}}value="{{.Value.Title}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
       <label class="mdl-textfield__label" for="{{.InputId}}_Title">{{dt (printf "%v.title" .Base.ToParam) "HTML TITLE"}}</label>
     </div>
   </div>
 
   <div class="qor-field">
     <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
-      <input class="qor-seo-description-field mdl-textfield__input" type="text" id="{{.InputId}}_Description" name="{{.InputName}}.Description" {{if .Value}}value="{{.Value.Description}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+      <input class="qor-seo-input-field qor-seo-description-field mdl-textfield__input" type="text" id="{{.InputId}}_Description" name="{{.InputName}}.Description" {{if .Value}}value="{{.Value.Description}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
       <label class="mdl-textfield__label" for="{{.InputId}}_Description">{{dt (printf "%v.description" .Base.ToParam) "META DESCRIPTION"}}</label>
     </div>
   </div>

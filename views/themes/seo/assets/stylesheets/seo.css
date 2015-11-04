@@ -1,0 +1,20 @@
+.qor-seo-tags {
+  margin: 0;
+  padding: 0;
+  list-style: none; }
+  .qor-seo-tags .qor-seo-tag {
+    float: left;
+    margin-right: 20px; }
+    .qor-seo-tags .qor-seo-tag.focus {
+      cursor: pointer; }
+      .qor-seo-tags .qor-seo-tag.focus i, .qor-seo-tags .qor-seo-tag.focus span {
+        color: rgba(0, 0, 0, 0.54); }
+      .qor-seo-tags .qor-seo-tag.focus:hover span {
+        text-decoration: underline; }
+  .qor-seo-tags i, .qor-seo-tags span {
+    display: inline-block;
+    vertical-align: middle;
+    color: rgba(0, 0, 0, 0.26);
+    margin-right: 6px; }
+
+/*# sourceMappingURL=seo.css.map */
