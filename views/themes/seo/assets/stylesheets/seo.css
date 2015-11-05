@@ -17,4 +17,10 @@
     color: rgba(0, 0, 0, 0.26);
     margin-right: 6px; }
 
+.qor-seo > h4 {
+  margin-top: 0; }
+
+.qor-page__title {
+  padding: 24px 24px 0; }
+
 /*# sourceMappingURL=seo.css.map */
