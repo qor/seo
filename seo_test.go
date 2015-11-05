@@ -88,7 +88,7 @@ func TestMicrodata(t *testing.T) {
 	testCases = append(testCases,
 		MicroDataTestCase{"Product", seo.MicroProduct{Name: ""}, `<span itemprop="name"></span>`},
 		MicroDataTestCase{"Product", seo.MicroProduct{Name: "Polo"}, `<span itemprop="name">Polo</span>`},
-		MicroDataTestCase{"Search", seo.MicroSearch{URL: "www.example.com"}, `www.example.com`},
+		MicroDataTestCase{"Search", seo.MicroSearch{Target: "http://www.example.com/q"}, `http:\/\/www.example.com\/q={keyword}`},
 		MicroDataTestCase{"Contact", seo.MicroContact{Telephone: "86-401-302-313"}, `86-401-302-313`},
 	)
 	i := 1
