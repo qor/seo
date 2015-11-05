@@ -47,6 +47,13 @@ func (setting Setting) Value() (driver.Value, error) {
 
 var injected bool
 
+func (setting Setting) Render(mainObj interface{}, obj interface{}) template.HTML {
+	title := replaceTags(setting.Title, splitTags(setting.Tags), mainObj, obj)
+	description := replaceTags(setting.Description, splitTags(setting.Tags), mainObj, obj)
+	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">", title, description))
+}
+
+// Configure
 func (Setting) ConfigureQorResource(res *admin.Resource) {
 	Admin := res.GetAdmin()
 	scope := Admin.Config.DB.NewScope(res.Value)
@@ -82,12 +89,29 @@ func (Setting) ConfigureQorResource(res *admin.Resource) {
 			})
 		}
 	}
+	registerFunctions(res)
 }
 
-func (setting Setting) Render(mainObj interface{}, obj interface{}) template.HTML {
-	title := replaceTags(setting.Title, splitTags(setting.Tags), mainObj, obj)
-	description := replaceTags(setting.Description, splitTags(setting.Tags), mainObj, obj)
-	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">", title, description))
+func registerFunctions(res *admin.Resource) {
+	res.GetAdmin().RegisterFuncMap("filter_default_var_metas", func(metas []*admin.Meta) []*admin.Meta {
+		var filterDefaultVarMetas []*admin.Meta
+		for _, meta := range metas {
+			if meta.Type != "seo" {
+				filterDefaultVarMetas = append(filterDefaultVarMetas, meta)
+			}
+		}
+		return filterDefaultVarMetas
+	})
+
+	res.GetAdmin().RegisterFuncMap("filter_page_metas", func(metas []*admin.Meta) []*admin.Meta {
+		var filterPageMetas []*admin.Meta
+		for _, meta := range metas {
+			if meta.Type == "seo" {
+				filterPageMetas = append(filterPageMetas, meta)
+			}
+		}
+		return filterPageMetas
+	})
 }
 
 // Helpers
