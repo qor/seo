@@ -60,17 +60,16 @@
             var descriptionValue = this.$wrap.find(CLASS_DESCRIPTION_NAME).val();
             var data = {};
 
-            data[fieldName] = {
+            data[fieldName] = JSON.stringify({
                 "Title": titleValue,
                 "Description": descriptionValue,
                 "Tags": tagsValue
-            }
+            });
 
-            console.log(data);
-
+            var url = this.$wrap.parents(".qor-form").attr("action");
             $.ajax({
                 type: "POST",
-                url: "/admin/seo/1",
+                url: url,
                 data: data,
                 success: function () {
                     alert("Save");
