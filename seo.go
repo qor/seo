@@ -49,8 +49,11 @@ func (setting Setting) Value() (driver.Value, error) {
 var injected bool
 
 func (setting Setting) Render(mainObj interface{}, obj interface{}) template.HTML {
-	title := replaceTags(setting.Title, splitTags(setting.Tags), mainObj, obj)
-	description := replaceTags(setting.Description, splitTags(setting.Tags), mainObj, obj)
+	objTags := splitTags(setting.Tags)
+	reflectValue := reflect.Indirect(reflect.ValueOf(mainObj))
+	allTags := prependMainObjectTags(objTags, reflectValue)
+	title := replaceTags(setting.Title, allTags, mainObj, obj)
+	description := replaceTags(setting.Description, allTags, mainObj, obj)
 	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">", title, description))
 }
 
@@ -81,6 +84,7 @@ func (Setting) ConfigureQorResource(res *admin.Resource) {
 
 			tags := field.Tag.Get("seo")
 			tagsArray := splitTags(tags)
+			tagsArray = prependMainObjectTags(tagsArray, scope.IndirectValue())
 			meta.SetValuer(func(value interface{}, ctx *qor.Context) interface{} {
 				settingField, _ := ctx.GetDB().NewScope(value).FieldByName(name)
 				setting := settingField.Field.Interface().(settingInterface).GetSetting()
@@ -138,6 +142,21 @@ func splitTags(tags string) []string {
 		tagsArray = append(tagsArray, strings.Trim(tag, " "))
 	}
 	return tagsArray
+}
+
+func prependMainObjectTags(tags []string, mainValue reflect.Value) []string {
+	var results []string
+	if mainValue.Kind() == reflect.Struct {
+		for i := 0; i < mainValue.NumField(); i++ {
+			if mainValue.Field(i).Kind() == reflect.String {
+				results = append(results, mainValue.Type().Field(i).Name)
+			}
+		}
+	}
+	for _, tag := range tags {
+		results = append(results, tag)
+	}
+	return results
 }
 
 func replaceValues(matches [][]string, obj interface{}, originalVal string) string {
