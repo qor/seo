@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"html/template"
@@ -118,21 +119,8 @@ func registerFunctions(res *admin.Resource) {
 func replaceTags(originalVal string, validTags []string, mainObj interface{}, obj interface{}) string {
 	re := regexp.MustCompile("{{([a-zA-Z0-9]*)}}")
 	matches := re.FindAllStringSubmatch(originalVal, -1)
-	for _, match := range matches {
-		field := reflect.ValueOf(obj).FieldByName(match[1])
-		if field.IsValid() && isTagContains(validTags, match[1]) {
-			value := field.Interface().(string)
-			originalVal = strings.Replace(originalVal, match[0], value, 1)
-		}
-	}
-	for _, match := range matches {
-		field := reflect.ValueOf(mainObj).FieldByName(match[1])
-		if field.IsValid() {
-			value := field.Interface().(string)
-			originalVal = strings.Replace(originalVal, match[0], value, 1)
-		}
-	}
-	return originalVal
+	originalVal = replaceValues(matches, obj, originalVal)
+	return replaceValues(matches, mainObj, originalVal)
 }
 
 func isTagContains(tags []string, item string) bool {
@@ -150,4 +138,20 @@ func splitTags(tags string) []string {
 		tagsArray = append(tagsArray, strings.Trim(tag, " "))
 	}
 	return tagsArray
+}
+
+func replaceValues(matches [][]string, obj interface{}, originalVal string) string {
+	for _, match := range matches {
+		reflectValue := reflect.Indirect(reflect.ValueOf(obj))
+		if reflectValue.Kind() == reflect.Struct {
+			field := reflectValue.FieldByName(match[1])
+			if field.IsValid() {
+				value := field.Interface().(string)
+				originalVal = strings.Replace(originalVal, match[0], value, 1)
+			}
+		} else {
+			color.Yellow("[WARNING] Qor SEO: The parameter you passed is not a Struct")
+		}
+	}
+	return originalVal
 }
