@@ -154,7 +154,9 @@ func prependMainObjectTags(tags []string, mainValue reflect.Value) []string {
 		}
 	}
 	for _, tag := range tags {
-		results = append(results, tag)
+		if tag != "" {
+			results = append(results, tag)
+		}
 	}
 	return results
 }
