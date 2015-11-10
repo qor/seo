@@ -162,6 +162,9 @@ func prependMainObjectTags(tags []string, mainValue reflect.Value) []string {
 }
 
 func replaceValues(matches [][]string, obj interface{}, originalVal string) string {
+	if obj == nil {
+		return originalVal
+	}
 	for _, match := range matches {
 		reflectValue := reflect.Indirect(reflect.ValueOf(obj))
 		if reflectValue.Kind() == reflect.Struct {
