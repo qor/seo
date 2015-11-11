@@ -12,6 +12,20 @@
   {{render "shared/flashes"}}
   {{render "shared/errors"}}
 
+  <div class="qor-alert qor-fixed-alert qor-seo-alert qor-alert--success" role="alert" style="display:none;">
+    <button type="button" class="mdl-button mdl-button--icon" data-dismiss="fixed-alert">
+      <i class="material-icons">close</i>
+    </button>
+    Meta data updated successful!
+  </div>
+
+  <div class="qor-alert qor-fixed-alert qor-seo-alert qor-alert--error" role="alert" style="display:none;">
+    <button type="button" class="mdl-button mdl-button--icon" data-dismiss="fixed-alert">
+      <i class="material-icons">close</i>
+    </button>
+    Oops! something is wrong! Please try it again.
+  </div>
+
   <div class="qor-page__title">
       <h5>{{dt (printf "%v.default_metas.title" .Resource.ToParam) "Site-wide Settings"}}</h5>
       <p>{{dt (printf "%v.default_metas.description" .Resource.ToParam) "Here you can set site-wide variables and preferences for metadata."}}</p>

@@ -23,14 +23,26 @@
         },
         bind: function () {
             this.$element.on('click', $.proxy(this.submitSeo, this));
-            this.$tagInputs.on('click', $.proxy(this.tagInputsFocus, this));
+            this.$tagInputs.on('click keyup', $.proxy(this.tagInputsFocus, this));
             this.$tagInputs.on('blur', $.proxy(this.tagInputsBlur, this));
             this.$addTgas.on('click', $.proxy(this.addTags, this));
         },
+        saveSelection: function(containerEl) {
+            var range = window.getSelection().getRangeAt(0);
+            var preSelectionRange = range.cloneRange();
+            preSelectionRange.selectNodeContents(containerEl);
+            preSelectionRange.setEnd(range.startContainer, range.startOffset);
+            var start = preSelectionRange.toString().length;
+
+            return {
+                start: start,
+                end: start + range.toString().length
+            };
+        },
         tagInputsFocus: function(){
             this.$addTgas.addClass('focus');
-
             var $focusedInput = $(document.activeElement);
+
             this.focusedInputID = $focusedInput.prop("id");
             this.focusedInputStart = $focusedInput[0].selectionStart;
             this.focusedInputEnd = $focusedInput[0].selectionEnd;
@@ -72,10 +84,13 @@
                 url: url,
                 data: data,
                 success: function () {
-                    alert("Save");
+                    $('.qor-alert--success').show().addClass('');
+                    setTimeout(function () {
+                        $('.qor-alert--success').hide();
+                      }, 5000);
                 },
                 error: function (data) {
-                    alert("Can't save");
+                    $('.qor-alert--error').show();
                 }
             });
             return false;
@@ -87,6 +102,10 @@
         submits.each(function(){
             var qorSeo = new QorSeo($(this));
             qorSeo.init();
+        });
+
+        $(document).on('click.qor.fixedAlert', '[data-dismiss="fixed-alert"]', function () {
+            $(this).closest('.qor-alert').hide();
         });
     })
 

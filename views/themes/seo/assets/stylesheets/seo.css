@@ -19,6 +19,24 @@
 
 .qor-seo > h4 {
   margin-top: 0; }
+.qor-seo .seo-selected-tag {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 4px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  background-color: #2196f3; }
+
+.qor-page {
+  position: relative; }
+
+.qor-fixed-alert {
+  position: fixed;
+  z-index: 100;
+  margin: 0 24px;
+  top: 60px;
+  left: 240px;
+  right: 0; }
 
 .qor-page__title {
   padding: 24px 24px 0; }
