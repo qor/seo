@@ -63,7 +63,7 @@
             var tagVal = "{{"+$(event.currentTarget).data("tagValue")+"}}";
 
             newVal = startString + tagVal + endString;
-            $("#"+this.focusedInputID).val(newVal);
+            $("#"+this.focusedInputID).val(newVal).focus();
         },
         submitSeo: function(){
             var fieldName = this.$wrap.find(CLASS_FIELD).prop("name");
