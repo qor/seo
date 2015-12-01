@@ -4,15 +4,17 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/fatih/color"
-	"github.com/qor/qor"
-	"github.com/qor/qor/admin"
 	"html/template"
 	"os"
 	"path"
 	"reflect"
 	"regexp"
 	"strings"
+
+	"github.com/fatih/color"
+	"github.com/qor/qor"
+	"github.com/qor/qor/admin"
+	"github.com/qor/qor/resource"
 )
 
 type Setting struct {
@@ -58,43 +60,45 @@ func (setting Setting) Render(mainObj interface{}, obj interface{}) template.HTM
 }
 
 // Configure
-func (Setting) ConfigureQorResource(res *admin.Resource) {
-	Admin := res.GetAdmin()
-	scope := Admin.Config.DB.NewScope(res.Value)
+func (Setting) ConfigureQorResource(res resource.Resourcer) {
+	if res, ok := res.(*admin.Resource); ok {
+		Admin := res.GetAdmin()
+		scope := Admin.Config.DB.NewScope(res.Value)
 
-	if !injected {
-		injected = true
-		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/seo/views"))
-		}
-		res.UseTheme("seo")
-	}
-
-	for _, field := range scope.Fields() {
-		if field.Struct.Type == reflect.TypeOf(Setting{}) {
-			name := field.Name
-
-			meta := res.GetMeta(name)
-			if meta != nil {
-				meta.Type = "seo"
-			} else {
-				res.Meta(&admin.Meta{Name: name, Type: "seo"})
-				meta = res.GetMeta(name)
+		if !injected {
+			injected = true
+			for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+				admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/seo/views"))
 			}
-
-			tags := field.Tag.Get("seo")
-			tagsArray := splitTags(tags)
-			tagsArray = prependMainObjectTags(tagsArray, scope.IndirectValue())
-			meta.SetValuer(func(value interface{}, ctx *qor.Context) interface{} {
-				settingField, _ := ctx.GetDB().NewScope(value).FieldByName(name)
-				setting := settingField.Field.Interface().(settingInterface).GetSetting()
-				setting.Tags = tags
-				setting.TagsArray = tagsArray
-				return setting
-			})
+			res.UseTheme("seo")
 		}
+
+		for _, field := range scope.Fields() {
+			if field.Struct.Type == reflect.TypeOf(Setting{}) {
+				name := field.Name
+
+				meta := res.GetMeta(name)
+				if meta != nil {
+					meta.Type = "seo"
+				} else {
+					res.Meta(&admin.Meta{Name: name, Type: "seo"})
+					meta = res.GetMeta(name)
+				}
+
+				tags := field.Tag.Get("seo")
+				tagsArray := splitTags(tags)
+				tagsArray = prependMainObjectTags(tagsArray, scope.IndirectValue())
+				meta.SetValuer(func(value interface{}, ctx *qor.Context) interface{} {
+					settingField, _ := ctx.GetDB().NewScope(value).FieldByName(name)
+					setting := settingField.Field.Interface().(settingInterface).GetSetting()
+					setting.Tags = tags
+					setting.TagsArray = tagsArray
+					return setting
+				})
+			}
+		}
+		registerFunctions(res)
 	}
-	registerFunctions(res)
 }
 
 func registerFunctions(res *admin.Resource) {
