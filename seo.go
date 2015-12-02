@@ -60,8 +60,9 @@ func (setting Setting) Render(mainObj interface{}, obj interface{}) template.HTM
 }
 
 // Configure
-func (Setting) ConfigureQorResource(res resource.Resourcer) {
-	if res, ok := res.(*admin.Resource); ok {
+func (Setting) ConfigureQorMeta(meta resource.Metaor) {
+	if meta, ok := meta.(*admin.Meta); ok {
+		res := meta.GetBaseResource().(*admin.Resource)
 		Admin := res.GetAdmin()
 		scope := Admin.Config.DB.NewScope(res.Value)
 
