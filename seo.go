@@ -60,44 +60,32 @@ func (setting Setting) Render(mainObj interface{}, obj interface{}) template.HTM
 }
 
 // Configure
-func (Setting) ConfigureQorMeta(meta resource.Metaor) {
+func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 	if meta, ok := meta.(*admin.Meta); ok {
+		meta.Type = "seo"
+
+		if meta.GetValuer() == nil {
+			res := meta.GetBaseResource().(*admin.Resource)
+			Admin := res.GetAdmin()
+
+			tags := meta.FieldStruct.Struct.Tag.Get("seo")
+			tagsArray := splitTags(tags)
+			tagsArray = prependMainObjectTags(tagsArray, Admin.Config.DB.NewScope(res.Value).IndirectValue())
+
+			meta.SetValuer(func(value interface{}, ctx *qor.Context) interface{} {
+				settingField, _ := ctx.GetDB().NewScope(value).FieldByName(meta.FieldStruct.Struct.Name)
+				setting := settingField.Field.Interface().(settingInterface).GetSetting()
+				setting.Tags = tags
+				setting.TagsArray = tagsArray
+				return setting
+			})
+		}
+
 		res := meta.GetBaseResource().(*admin.Resource)
-		Admin := res.GetAdmin()
-		scope := Admin.Config.DB.NewScope(res.Value)
-
-		if !injected {
-			injected = true
-			for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-				admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/seo/views"))
-			}
-			res.UseTheme("seo")
+		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/seo/views"))
 		}
-
-		for _, field := range scope.Fields() {
-			if field.Struct.Type == reflect.TypeOf(Setting{}) {
-				name := field.Name
-
-				meta := res.GetMeta(name)
-				if meta != nil {
-					meta.Type = "seo"
-				} else {
-					res.Meta(&admin.Meta{Name: name, Type: "seo"})
-					meta = res.GetMeta(name)
-				}
-
-				tags := field.Tag.Get("seo")
-				tagsArray := splitTags(tags)
-				tagsArray = prependMainObjectTags(tagsArray, scope.IndirectValue())
-				meta.SetValuer(func(value interface{}, ctx *qor.Context) interface{} {
-					settingField, _ := ctx.GetDB().NewScope(value).FieldByName(name)
-					setting := settingField.Field.Interface().(settingInterface).GetSetting()
-					setting.Tags = tags
-					setting.TagsArray = tagsArray
-					return setting
-				})
-			}
-		}
+		res.UseTheme("seo")
 		registerFunctions(res)
 	}
 }
