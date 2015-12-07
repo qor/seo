@@ -91,24 +91,42 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 }
 
 func registerFunctions(res *admin.Resource) {
-	res.GetAdmin().RegisterFuncMap("filter_default_var_metas", func(metas []*admin.Meta) []*admin.Meta {
-		var filterDefaultVarMetas []*admin.Meta
-		for _, meta := range metas {
-			if meta.Type != "seo" {
-				filterDefaultVarMetas = append(filterDefaultVarMetas, meta)
+	res.GetAdmin().RegisterFuncMap("filter_default_var_sections", func(sections []*admin.Section) []*admin.Section {
+		var filterDefaultVarSections []*admin.Section
+		for _, section := range sections {
+			isContainSeoTag := false
+			for _, row := range section.Rows {
+				for _, col := range row {
+					meta := res.GetMetaOrNew(col)
+					if meta != nil && meta.Type == "seo" {
+						isContainSeoTag = true
+					}
+				}
+			}
+			if !isContainSeoTag {
+				filterDefaultVarSections = append(filterDefaultVarSections, section)
 			}
 		}
-		return filterDefaultVarMetas
+		return filterDefaultVarSections
 	})
 
-	res.GetAdmin().RegisterFuncMap("filter_page_metas", func(metas []*admin.Meta) []*admin.Meta {
-		var filterPageMetas []*admin.Meta
-		for _, meta := range metas {
-			if meta.Type == "seo" {
-				filterPageMetas = append(filterPageMetas, meta)
+	res.GetAdmin().RegisterFuncMap("filter_page_sections", func(sections []*admin.Section) []*admin.Section {
+		var filterPageSections []*admin.Section
+		for _, section := range sections {
+			isContainSeoTag := false
+			for _, row := range section.Rows {
+				for _, col := range row {
+					meta := res.GetMetaOrNew(col)
+					if meta != nil && meta.Type == "seo" {
+						isContainSeoTag = true
+					}
+				}
+			}
+			if isContainSeoTag {
+				filterPageSections = append(filterPageSections, section)
 			}
 		}
-		return filterPageMetas
+		return filterPageSections
 	})
 }
 
