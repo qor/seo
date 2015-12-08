@@ -1,6 +1,6 @@
 {{$defaultVarSections := filter_default_var_sections edit_sections}}
 {{$pageSections := filter_page_sections edit_sections}}
-{{$actions := load_show_actions}}
+{{$actions := load_actions "edit"}}
 {{if $actions}}
 <div class="qor-page__header">
   {{$actions}}
