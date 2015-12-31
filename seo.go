@@ -48,8 +48,6 @@ func (setting Setting) Value() (driver.Value, error) {
 	return string(result), err
 }
 
-var injected bool
-
 func (setting Setting) Render(mainObj interface{}, obj interface{}) template.HTML {
 	objTags := splitTags(setting.Tags)
 	reflectValue := reflect.Indirect(reflect.ValueOf(mainObj))
