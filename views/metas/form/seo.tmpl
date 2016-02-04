@@ -4,7 +4,7 @@
 
 <div class="qor-form-container">
   <div class="qor-seo qor-field">
-    <h4 class="qor-section-title">{{dt $attributesScoped $labelName}}</h4>
+    <h4 class="qor-section-title">{{t $attributesScoped $labelName}}</h4>
 
     <ul class="qor-seo-tags clearfix" data-input-id={{.InputId}}>
       {{range .Value.TagsArray}}
@@ -15,14 +15,14 @@
     <div class="qor-field">
       <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
         <input class="qor-seo-input-field qor-seo-title-field mdl-textfield__input" type="text" id="{{.InputId}}_Title" name="{{.InputName}}.Title" {{if .Value}}value="{{.Value.Title}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
-        <label class="mdl-textfield__label" for="{{.InputId}}_Title">{{dt (printf "%v.title" .BaseResource.ToParam) "HTML TITLE"}}</label>
+        <label class="mdl-textfield__label" for="{{.InputId}}_Title">{{t (printf "%v.title" .BaseResource.ToParam) "HTML TITLE"}}</label>
       </div>
     </div>
 
     <div class="qor-field">
       <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
         <input class="qor-seo-input-field qor-seo-description-field mdl-textfield__input" type="text" id="{{.InputId}}_Description" name="{{.InputName}}.Description" {{if .Value}}value="{{.Value.Description}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
-        <label class="mdl-textfield__label" for="{{.InputId}}_Description">{{dt (printf "%v.description" .BaseResource.ToParam) "META DESCRIPTION"}}</label>
+        <label class="mdl-textfield__label" for="{{.InputId}}_Description">{{t (printf "%v.description" .BaseResource.ToParam) "META DESCRIPTION"}}</label>
       </div>
     </div>
 
