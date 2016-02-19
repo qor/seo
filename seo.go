@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"os"
-	"path"
 	"reflect"
 	"regexp"
 	"strings"
@@ -80,9 +78,7 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 		}
 
 		res := meta.GetBaseResource().(*admin.Resource)
-		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/seo/views"))
-		}
+		admin.RegisterViewPath("github.com/qor/seo/views")
 		res.UseTheme("seo")
 		registerFunctions(res)
 	}
