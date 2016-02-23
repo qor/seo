@@ -70,7 +70,7 @@
             var titleValue = this.$wrap.find(CLASS_TITLE_NAME).val();
             var tagsValue = this.$wrap.find(CLASS_TAGS_NAME).val();
             var descriptionValue = this.$wrap.find(CLASS_DESCRIPTION_NAME).val();
-            var data = {};
+            var data = { "_method" : "PUT" };
 
             data[fieldName] = JSON.stringify({
                 "Title": titleValue,
