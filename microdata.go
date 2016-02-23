@@ -26,10 +26,11 @@ type MicroProduct struct {
 
 // Ref: https://developers.google.com/structured-data/slsb-overview?hl=zh_CN
 // e.g.
-//   Target: https://query.example-petstore.com/search?q=
+//   Target: https://query.example-petstore.com/search?q={keyword}
 type MicroSearch struct {
-	URL    string
-	Target string
+	URL        string
+	Target     string
+	QueryInput string
 }
 
 // Ref: https://developers.google.com/structured-data/customize/contact-points?hl=zh_CN
@@ -45,6 +46,14 @@ func (product MicroProduct) Render() template.HTML {
 
 func (search MicroSearch) Render() template.HTML {
 	return renderTemplate("search.tmpl", search)
+}
+
+func (search MicroSearch) FormattedQueryInput() string {
+	if search.QueryInput == "" {
+		return "required name=keyword"
+	} else {
+		return search.QueryInput
+	}
 }
 
 func (contact MicroContact) Render() template.HTML {
