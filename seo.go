@@ -15,6 +15,7 @@ import (
 	"github.com/qor/qor/resource"
 )
 
+// Setting could be used to field type for SEO Settings
 type Setting struct {
 	Title       string
 	Description string
@@ -26,10 +27,12 @@ type settingInterface interface {
 	GetSetting() Setting
 }
 
+// GetSetting return itself to match interface
 func (setting Setting) GetSetting() Setting {
 	return setting
 }
 
+// Scan scan value from database into struct
 func (setting *Setting) Scan(value interface{}) error {
 	if bytes, ok := value.([]byte); ok {
 		json.Unmarshal(bytes, setting)
@@ -41,21 +44,23 @@ func (setting *Setting) Scan(value interface{}) error {
 	return nil
 }
 
+// Value get value from struct, and save into database
 func (setting Setting) Value() (driver.Value, error) {
 	result, err := json.Marshal(setting)
 	return string(result), err
 }
 
-func (setting Setting) Render(mainObj interface{}, obj interface{}) template.HTML {
+// Render render SEO Setting
+func (setting Setting) Render(seoSetting interface{}, obj ...interface{}) template.HTML {
 	objTags := splitTags(setting.Tags)
-	reflectValue := reflect.Indirect(reflect.ValueOf(mainObj))
+	reflectValue := reflect.Indirect(reflect.ValueOf(seoSetting))
 	allTags := prependMainObjectTags(objTags, reflectValue)
-	title := replaceTags(setting.Title, allTags, mainObj, obj)
-	description := replaceTags(setting.Description, allTags, mainObj, obj)
+	title := replaceTags(setting.Title, allTags, seoSetting, obj...)
+	description := replaceTags(setting.Description, allTags, seoSetting, obj...)
 	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">", title, description))
 }
 
-// Configure
+// ConfigureQorMetaBeforeInitialize configure SEO setting for qor admin
 func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 	if meta, ok := meta.(*admin.Meta); ok {
 		meta.Type = "seo"
@@ -125,11 +130,10 @@ func registerFunctions(res *admin.Resource) {
 }
 
 // Helpers
-func replaceTags(originalVal string, validTags []string, mainObj interface{}, obj interface{}) string {
+func replaceTags(originalVal string, validTags []string, mainObj interface{}, obj ...interface{}) string {
 	re := regexp.MustCompile("{{([a-zA-Z0-9]*)}}")
 	matches := re.FindAllStringSubmatch(originalVal, -1)
-	originalVal = replaceValues(matches, obj, originalVal)
-	return replaceValues(matches, mainObj, originalVal)
+	return replaceValues(originalVal, matches, append(obj, mainObj)...)
 }
 
 func isTagContains(tags []string, item string) bool {
@@ -166,20 +170,19 @@ func prependMainObjectTags(tags []string, mainValue reflect.Value) []string {
 	return results
 }
 
-func replaceValues(matches [][]string, obj interface{}, originalVal string) string {
-	if obj == nil {
-		return originalVal
-	}
+func replaceValues(originalVal string, matches [][]string, objs ...interface{}) string {
 	for _, match := range matches {
-		reflectValue := reflect.Indirect(reflect.ValueOf(obj))
-		if reflectValue.Kind() == reflect.Struct {
-			field := reflectValue.FieldByName(match[1])
-			if field.IsValid() {
-				value := field.Interface().(string)
-				originalVal = strings.Replace(originalVal, match[0], value, 1)
+		for _, obj := range objs {
+			reflectValue := reflect.Indirect(reflect.ValueOf(obj))
+			if reflectValue.Kind() == reflect.Struct {
+				field := reflectValue.FieldByName(match[1])
+				if field.IsValid() {
+					value := field.Interface().(string)
+					originalVal = strings.Replace(originalVal, match[0], value, 1)
+				}
+			} else {
+				color.Yellow("[WARNING] Qor SEO: The parameter you passed is not a Struct")
 			}
-		} else {
-			color.Yellow("[WARNING] Qor SEO: The parameter you passed is not a Struct")
 		}
 	}
 	return originalVal

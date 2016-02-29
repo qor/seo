@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// Ref: https://developers.google.com/structured-data/rich-snippets/products?hl=zh_CN
+// MicroProduct micro product definition, ref: https://developers.google.com/structured-data/rich-snippets/products
 type MicroProduct struct {
 	Name            string
 	Image           string
@@ -24,7 +24,7 @@ type MicroProduct struct {
 	SellerName      string
 }
 
-// Ref: https://developers.google.com/structured-data/slsb-overview?hl=zh_CN
+// MicroSearch micro search definition, ref: https://developers.google.com/structured-data/slsb-overview
 // e.g.
 //   Target: https://query.example-petstore.com/search?q={keyword}
 type MicroSearch struct {
@@ -33,29 +33,32 @@ type MicroSearch struct {
 	QueryInput string
 }
 
-// Ref: https://developers.google.com/structured-data/customize/contact-points?hl=zh_CN
+// MicroContact micro search definition, ref: https://developers.google.com/structured-data/customize/contact-points
 type MicroContact struct {
 	URL         string
 	Telephone   string
 	ContactType string
 }
 
+// Render render micro product structured data
 func (product MicroProduct) Render() template.HTML {
 	return renderTemplate("product.tmpl", product)
 }
 
+// Render render micro search structured data
 func (search MicroSearch) Render() template.HTML {
 	return renderTemplate("search.tmpl", search)
 }
 
+// FormattedQueryInput format query input
 func (search MicroSearch) FormattedQueryInput() string {
 	if search.QueryInput == "" {
 		return "required name=keyword"
-	} else {
-		return search.QueryInput
 	}
+	return search.QueryInput
 }
 
+// Render render micro contact structured data
 func (contact MicroContact) Render() template.HTML {
 	return renderTemplate("contact.tmpl", contact)
 }

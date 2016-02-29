@@ -1,29 +1,76 @@
-# Qor SEO Meta Module
+# SEO
 
-SEO Meta module provide a administrator interface for End User to change html page's title, and description tag content.
-In title and description you can embed variables that provided by Developer.
+SEO provides an administrator interface to change HTML page's title, description, and meta tag's content, in thoe contents, you could embed variables that provided by developers.
 
+[![GoDoc](https://godoc.org/github.com/qor/seo?status.svg)](https://godoc.org/github.com/qor/seo)
 
-## Developer side usage
+## Definition
 
-Developer will define a list of page SEO meta settings that he want the End User to use. He may provide one settings for a group of pages that has the same type. For example: All Product Detail pages, That End User only need to provide one single template configuration by utilizing Product Name, Product Code variables that developer provided.
-
-### Example
+Define SEO settings struct with `Site-wide Settings` and `Page Related Settings`, For example:
 
 ```go
-type Seo struct {
+type SEO struct {
 	gorm.Model
-	SiteName    string
-	SiteHost    string
-	HomePage    seo.Setting `seo:"Topic,EmailTitle,EmailContent,EmailAddress"`
-	ProductPage seo.Setting `seo:"Name"`
+	SiteName     string  // Site-wide Settings
+	SiteHost     string  // Site-wide Settings
+  HomePage     seo.Setting
+  ProductPage  seo.Setting `seo:"ProductName,ProductCode"` // Page Related Variables [ProductName, ProductCode]
+  CategoryPage seo.Setting `seo:"CategoryName"` // Page Related Variables [CategoryName]
 }
+
+// The `SEO` struct is a normal GORM-backend models, needs to run migration before use it
+db.AutoMigrate(&SEO{})
+
+// Add `SEO` to QOR Admin Interface
+Admin.AddResource(&SEO{})
 ```
-Developer will define the above Go struct, It means End User can setup SiteName, SiteHost as literially string. and Could setup HomePage with variables `Topic`, `EmailTitle`, `EmailContent`, `EmailAddress`. and so on.
 
+[Online SEO Setting Demo For Qor Example](http://demo.getqor.com/admin/seo)
 
-## End User side usage
+## Usage
 
-The above definiation for Developer will generate the following Qor Adminstration backend. That End user can change text and variable of the whole site title, and description:
+```go
+var SEOSetting SEO
+db.First(&SEOSetting)
 
-![Administration UI](https://raw.githubusercontent.com/qor/seo/master/images/qor_meta.png)
+// render home page's meta tags
+SEOSetting.HomePage.Render(SEOSetting)
+
+// render product page's meta tags
+var product Product
+db.First(&product, "code = ?", "L1212")
+SEOSetting.ProductPage.Render(SEOSetting, product)
+```
+
+## Structured Data
+
+```go
+// micro search
+seo.MicroSearch{
+  URL:    "http://demo.getqor.com",
+  Target: "http://demo.getqor.com/search?q=",
+}.Render()
+
+// micro contact
+seo.MicroContact{
+  URL:         "http://demo.getqor.com",
+  Telephone:   "080-0012-3232",
+  ContactType: "Customer Service",
+}.Render()
+
+// micro product
+seo.MicroProduct{
+  Name: "Kenmore White 17 Microwave",
+  Image: "http://getqor.com/source/images/qor-logo.png",
+  Description: "0.7 cubic feet countertop microwave. Has six preset cooking categories and convenience features like Add-A-Minute and Child Lock."
+  BrandName: "ThePlant",
+  SKU: "L1212",
+  PriceCurrency: "USD",
+  Price: 100,
+  SellerName: "ThePlant",
+}.Render()
+```
+
+## License
+
+Released under the [MIT License](http://opensource.org/licenses/MIT).
