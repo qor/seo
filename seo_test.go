@@ -2,14 +2,15 @@ package seo_test
 
 import (
 	"fmt"
-	"github.com/fatih/color"
-	"github.com/jinzhu/gorm"
-	"github.com/qor/qor/test/utils"
-	"github.com/qor/seo"
 	"html/template"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/fatih/color"
+	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/test/utils"
+	"github.com/qor/seo"
 )
 
 var db *gorm.DB
@@ -56,16 +57,16 @@ type MicroDataTestCase struct {
 func TestRender(t *testing.T) {
 	var testCases []RenderTestCase
 	testCases = append(testCases,
-		RenderTestCase{"Qor", seo.Setting{"", "", "Name,URLTitle", nil}, "", "", false, `<title></title><meta name="description" content="">`},
-		RenderTestCase{"Qor", seo.Setting{"{{SiteName}}", "{{SiteName}}", "Name,URLTitle", nil}, "", "", false, `<title>Qor</title><meta name="description" content="Qor">`},
-		RenderTestCase{"Qor", seo.Setting{"{{SiteName}} {{Name}}", "{{URLTitle}}", "Name,URLTitle", nil}, "Clothing", "/clothing", false, `<title>Qor Clothing</title><meta name="description" content="/clothing">`},
-		RenderTestCase{"Qor", seo.Setting{"{{SiteName}} {{Name}} {{Name}}", "{{URLTitle}} {{URLTitle}}", "Name,URLTitle", nil}, "Clothing", "/clothing", false, `<title>Qor Clothing Clothing</title><meta name="description" content="/clothing /clothing">`},
-		RenderTestCase{"Qor", seo.Setting{"{{SiteName}} {{Name}} {{URLTitle}}", "{{SiteName}} {{Name}} {{URLTitle}}", "Name,URLTitle", nil}, "", "", false, `<title>Qor  </title><meta name="description" content="Qor  ">`},
-		RenderTestCase{"Qor", seo.Setting{"{{SiteName}} {{Name1}}", "{{URLTitle1}}", "Name,URLTitle", nil}, "Clothing", "/clothing", false, `<title>Qor {{Name1}}</title><meta name="description" content="{{URLTitle1}}">`},
+		RenderTestCase{"Qor", seo.Setting{Title: "", Description: "", Tags: "Name,URLTitle", TagsArray: nil}, "", "", false, `<title></title><meta name="description" content="">`},
+		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{SiteName}}", Tags: "Name,URLTitle", TagsArray: nil}, "", "", false, `<title>Qor</title><meta name="description" content="Qor">`},
+		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}}", Description: "{{URLTitle}}", Tags: "Name,URLTitle", TagsArray: nil}, "Clothing", "/clothing", false, `<title>Qor Clothing</title><meta name="description" content="/clothing">`},
+		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}} {{Name}}", Description: "{{URLTitle}} {{URLTitle}}", Tags: "Name,URLTitle", TagsArray: nil}, "Clothing", "/clothing", false, `<title>Qor Clothing Clothing</title><meta name="description" content="/clothing /clothing">`},
+		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}} {{URLTitle}}", Description: "{{SiteName}} {{Name}} {{URLTitle}}", Tags: "Name,URLTitle", TagsArray: nil}, "", "", false, `<title>Qor  </title><meta name="description" content="Qor  ">`},
+		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name1}}", Description: "{{URLTitle1}}", Tags: "Name,URLTitle", TagsArray: nil}, "Clothing", "/clothing", false, `<title>Qor {{Name1}}</title><meta name="description" content="{{URLTitle1}}">`},
 		// Pass nil object for Render
 		RenderTestCase{"Qor", seo.Setting{}, "Clothing", "/clothing", false, `<title></title><meta name="description" content="">`},
 		// Pass a non struct object
-		RenderTestCase{"Qor", seo.Setting{"{{SiteName}} {{Name}}", "{{URLTitle}}", "Name,URLTitle", nil}, "Clothing", "/clothing", true, `<title>{{SiteName}} {{Name}}</title><meta name="description" content="{{URLTitle}}">`},
+		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}}", Description: "{{URLTitle}}", Tags: "Name,URLTitle", TagsArray: nil}, "Clothing", "/clothing", true, `<title>{{SiteName}} {{Name}}</title><meta name="description" content="{{URLTitle}}">`},
 	)
 	seo := Seo{}
 	cat := Category{}
