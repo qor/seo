@@ -1,12 +1,12 @@
 # SEO
 
-SEO provides an administrator interface to change HTML page's title, description, and meta tag's content, in thoe contents, you could embed variables that provided by developers.
+This SEO library allows for the management of and injection of dynamic data into HTML tags for the purpose of Search Engine Optimisation. Using the [QOR Admin](https://github.com/qor/admin) interface, an administrator can easily manage the content of an HTML page's title, description, and meta tags.
 
 [![GoDoc](https://godoc.org/github.com/qor/seo?status.svg)](https://godoc.org/github.com/qor/seo)
 
 ## Definition
 
-Define SEO settings struct with `Site-wide Settings` and `Page Related Settings`, For example:
+Define SEO settings struct with `Site-wide Settings` and `Page Related Settings`, for example:
 
 ```go
 type SEO struct {
@@ -18,7 +18,7 @@ type SEO struct {
   CategoryPage seo.Setting `seo:"CategoryName"` // Page Related Variables [CategoryName]
 }
 
-// The `SEO` struct is a normal GORM-backend models, needs to run migration before use it
+// The `SEO` struct is a normal GORM-backend model, need to run migration before using it
 db.AutoMigrate(&SEO{})
 
 // Add `SEO` to QOR Admin Interface
