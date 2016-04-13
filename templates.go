@@ -1,4 +1,8 @@
-<div itemscope itemtype="http://schema.org/Product" style="display:none;">
+package seo
+
+var (
+	productMicroDataTemplate = `
+	<div itemscope itemtype="http://schema.org/Product" style="display:none;">
   <span itemprop="brand">{{.BrandName}}</span>
   <span itemprop="name">{{.Name}}</span>
   <img itemprop="image" src="{{.Image}}" />
@@ -17,4 +21,34 @@
       <link itemprop="availability" href="http://schema.org/InStock"/>
     </span>
   </span>
-</div>
+	</div>
+	`
+
+	contactMicroDataTemplate = `
+	<script type="application/ld+json">
+	{ "@context" : "http://schema.org",
+		"@type" : "Organization",
+		"url" : "{{.URL}}",
+		"contactPoint" : [
+			{ "@type" : "ContactPoint",
+				"telephone" : "{{.Telephone}}",
+				"contactType" : "{{.ContactType}}"
+			} ] }
+	</script>
+	`
+
+	searchMicroDataTemplate = `
+	<script type="application/ld+json">
+	{
+		"@context": "http://schema.org",
+		"@type": "WebSite",
+		"url": "{{.URL}}",
+		"potentialAction": {
+			"@type": "SearchAction",
+			"target": "{{.Target}}",
+			"query-input": "{{.FormattedQueryInput}}"
+		}
+	}
+	</script>
+	`
+)
