@@ -25,7 +25,7 @@ db.AutoMigrate(&SEO{})
 Admin.AddResource(&SEO{})
 ```
 
-[Online SEO Setting Demo For Qor Example](http://demo.getqor.com/admin/seo)
+[Online SEO Setting Demo For Qor Example](http://demo.getqor.com/admin/seo_setting)
 
 ## Usage
 
