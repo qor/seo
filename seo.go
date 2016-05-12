@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/qor/qor"
 	"github.com/qor/admin"
+	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
 
@@ -83,7 +83,7 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 		}
 
 		res := meta.GetBaseResource().(*admin.Resource)
-		admin.RegisterViewPath("github.com/qor/seo/views")
+		res.GetAdmin().RegisterViewPath("github.com/qor/seo/views")
 		res.UseTheme("seo")
 		registerFunctions(res)
 	}
