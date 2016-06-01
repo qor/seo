@@ -46,9 +46,9 @@
 
 .qor-fixed-alert{
 	position: fixed;
-	z-index: 100;
+	z-index: 1000;
 	margin: 0 24px;
-	top: 60px;
+	top: 0;
 	left: 240px;
 	right: 0;
 }
