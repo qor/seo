@@ -6,6 +6,7 @@
     var CLASS_FIELD = ".qor-seo-field";
     var CLASS_TITLE_NAME = ".qor-seo-title-field";
     var CLASS_DESCRIPTION_NAME = ".qor-seo-description-field";
+    var CLASS_KEYWORDS_NAME = ".qor-seo-keywords-field";
     var CLASS_TAGS_NAME = ".qor-seo-tags-field";
     var CLASS_ADD_TAGS_NAME = ".qor-seo-tag";
     var CLASS_TAGS_INPUT_NAME = ".qor-seo-input-field";
@@ -70,11 +71,13 @@
             var titleValue = this.$wrap.find(CLASS_TITLE_NAME).val();
             var tagsValue = this.$wrap.find(CLASS_TAGS_NAME).val();
             var descriptionValue = this.$wrap.find(CLASS_DESCRIPTION_NAME).val();
+            var keywordsValue = this.$wrap.find(CLASS_KEYWORDS_NAME).val();
             var data = { "_method" : "PUT" };
 
             data[fieldName] = JSON.stringify({
                 "Title": titleValue,
                 "Description": descriptionValue,
+                "Keywords": keywordsValue,
                 "Tags": tagsValue
             });
 

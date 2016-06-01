@@ -19,6 +19,7 @@ import (
 type Setting struct {
 	Title       string
 	Description string
+	Keywords    string
 	Tags        string
 	TagsArray   []string `json:"-"`
 }
@@ -57,7 +58,8 @@ func (setting Setting) Render(seoSetting interface{}, obj ...interface{}) templa
 	allTags := prependMainObjectTags(objTags, reflectValue)
 	title := replaceTags(setting.Title, allTags, seoSetting, obj...)
 	description := replaceTags(setting.Description, allTags, seoSetting, obj...)
-	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">", title, description))
+	keywords := replaceTags(setting.Keywords, allTags, seoSetting, obj...)
+	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", title, description, keywords))
 }
 
 // ConfigureQorMetaBeforeInitialize configure SEO setting for qor admin
