@@ -87,6 +87,8 @@
                 url: url,
                 data: data,
                 success: function () {
+                    window.onbeforeunload = null;
+                    $.fn.qorSlideoutBeforeHide = null;
                     $('.qor-alert--success').show().addClass('');
                     setTimeout(function () {
                         $('.qor-alert--success').hide();
