@@ -10,10 +10,73 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
+
+type SeoCollection struct {
+	SettingResource *admin.Resource
+	registeredSeo   []*Seo
+	setting         interface{}
+}
+
+type Seo struct {
+	Name     string
+	Settings []string
+	Context  func(...interface{}) map[string]interface{}
+}
+
+func init() {
+	admin.RegisterViewPath("github.com/qor/seo/views")
+}
+
+func New() *SeoCollection {
+	/*settingRes := a.AddResource(&QorSeoSetting{}, &admin.Config{Invisible: false})
+	settingRes.Meta(&admin.Meta{Name: "Name", Type: "hidden"})
+	res.UseTheme("seo")*/
+	return &SeoCollection{}
+}
+
+func (seoCollection *SeoCollection) RegisterGlobalSetting(s interface{}) {
+	seoCollection.setting = s
+}
+
+func (seoCollection *SeoCollection) RegisterSeo(seo *Seo) {
+	seoCollection.registeredSeo = append(seoCollection.registeredSeo, seo)
+}
+
+type QorSeoSetting struct {
+	gorm.Model
+	Name    string
+	Setting Setting `gorm:"size:4294967295"`
+}
+
+func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer) {
+	if res, ok := res.(*admin.Resource); ok {
+		Admin := res.GetAdmin()
+		if seoCollection.SettingResource == nil {
+			seoCollection.SettingResource = res.GetAdmin().AddResource(&QorSeoSetting{}, &admin.Config{Invisible: true})
+		}
+		seoCollection.SettingResource.UseTheme("seo")
+		nameMeta := seoCollection.SettingResource.GetMeta("Name")
+		nameMeta.Type = "hidden"
+
+		res.Config.Singleton = true
+		res.UseTheme("seo")
+		router := Admin.GetRouter()
+		controller := seoController{SeoCollection: seoCollection}
+		router.Get(res.ToParam(), controller.Index)
+		Admin.RegisterFuncMap("seoSections", func() []*QorSeoSetting {
+			settings := []*QorSeoSetting{}
+			for _, seo := range seoCollection.registeredSeo {
+				settings = append(settings, &QorSeoSetting{Name: seo.Name})
+			}
+			return settings
+		})
+	}
+}
 
 // Setting could be used to field type for SEO Settings
 type Setting struct {
@@ -86,7 +149,7 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 
 		res := meta.GetBaseResource().(*admin.Resource)
 		res.GetAdmin().RegisterViewPath("github.com/qor/seo/views")
-		res.UseTheme("seo")
+		//res.UseTheme("seo")
 		registerFunctions(res)
 	}
 }

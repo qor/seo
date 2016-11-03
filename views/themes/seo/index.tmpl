@@ -1,6 +1,9 @@
-{{$defaultVarSections := filter_default_var_sections new_sections}}
-{{$pageSections := filter_page_sections new_sections}}
-{{$seoSections := seoSections }}
+{{$actions := load_actions "new"}}
+{{if $actions}}
+  <div class="qor-page__header">
+    {{$actions}}
+  </div>
+{{end}}
 
 <div class="qor-page__body qor-page__col-2">
   {{render "shared/flashes"}}
@@ -31,7 +34,6 @@
     <div class="qor-form-container">
       <form class="qor-form" action="{{url_for .Result .Resource}}" method="POST" enctype="multipart/form-data">
         <input name="_method" value="PUT" type="hidden">
-        {{render_form .Result $defaultVarSections}}
 
         <div class="qor-form__actions">
           <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">
@@ -50,10 +52,10 @@
   </div>
 
   <div class="qor-page__col-right">
-    {{range $seoSections}}
-      <form class="qor-form" action="{{url_for .Result .Resource}}" method="POST" enctype="multipart/form-data">
+    {{range seoSections}}
+      <form class="qor-form" action="" method="POST" enctype="multipart/form-data">
         <input name="_method" value="PUT" type="hidden">
-        {{render_form .Result $pageSections}}
+        {{render_form . new_sections }}
       </form>
     {{end}}
   </div>
