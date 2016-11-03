@@ -1,3 +1,4 @@
+{{$resource := .Resource}}
 {{$actions := load_actions "new"}}
 {{if $actions}}
   <div class="qor-page__header">
@@ -32,7 +33,7 @@
 
   <div class="qor-page__col-right">
     <div class="qor-form-container">
-      <form class="qor-form" action="{{url_for .Result .Resource}}" method="POST" enctype="multipart/form-data">
+      <form class="qor-form" action="{{url_for globalSeoSection .Resource}}" method="POST" enctype="multipart/form-data">
         <input name="_method" value="PUT" type="hidden">
 
         <div class="qor-form__actions">
@@ -53,10 +54,17 @@
 
   <div class="qor-page__col-right">
     {{range seoSections}}
-      <form class="qor-form" action="" method="POST" enctype="multipart/form-data">
-        <input name="_method" value="PUT" type="hidden">
-        {{render_form . new_sections }}
-      </form>
+      <div class="qor-seo">
+        <form class="qor-form" action="{{url_for . $resource}}" method="POST" enctype="multipart/form-data">
+          <input name="_method" value="PUT" type="hidden">
+          <div class="qor-form-container">
+            {{render_form . new_sections }}
+            <div class="qor-form__actions">
+              <button class="qor-seo-submit mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit" data-upgraded=",MaterialButton,MaterialRipple">{{t "qor_admin.form.save_changes" "Save Changes"}}<span class="mdl-button__ripple-container"><span class="mdl-ripple"></span></span></button>
+            </div>
+          </div>
+        </form>
+      </div>
     {{end}}
   </div>
 </div>

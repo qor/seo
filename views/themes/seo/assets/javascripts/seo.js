@@ -81,7 +81,7 @@
                 "Tags": tagsValue
             });
 
-            var url = this.$wrap.parents(".qor-form").attr("action");
+            var url = this.$wrap.find(".qor-form").attr("action");
             $.ajax({
                 type: "POST",
                 url: url,

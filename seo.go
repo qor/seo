@@ -53,9 +53,23 @@ type QorSeoSetting struct {
 	Setting Setting `gorm:"size:4294967295"`
 }
 
+type QorSeoSettingInterface interface {
+	GetName() string
+	SetName(name string)
+}
+
+func (s QorSeoSetting) GetName() string {
+	return s.Name
+}
+
+func (s *QorSeoSetting) SetName(name string) {
+	s.Name = name
+}
+
 func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer) {
 	if res, ok := res.(*admin.Resource); ok {
 		Admin := res.GetAdmin()
+		db := Admin.Config.DB
 		if seoCollection.SettingResource == nil {
 			seoCollection.SettingResource = res.GetAdmin().AddResource(&QorSeoSetting{}, &admin.Config{Invisible: true})
 		}
@@ -68,12 +82,27 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 		router := Admin.GetRouter()
 		controller := seoController{SeoCollection: seoCollection}
 		router.Get(res.ToParam(), controller.Index)
-		Admin.RegisterFuncMap("seoSections", func() []*QorSeoSetting {
-			settings := []*QorSeoSetting{}
+		Admin.RegisterFuncMap("seoSections", func() []interface{} {
+			settings := []interface{}{}
 			for _, seo := range seoCollection.registeredSeo {
-				settings = append(settings, &QorSeoSetting{Name: seo.Name})
+				s := seoCollection.SettingResource.NewStruct()
+				db.Where("name = ?", seo.Name).First(s)
+				if db.NewRecord(s) {
+					s.(QorSeoSettingInterface).SetName(seo.Name)
+					db.Save(s)
+				}
+				settings = append(settings, s)
 			}
 			return settings
+		})
+		Admin.RegisterFuncMap("globalSeoSection", func() interface{} {
+			s := seoCollection.SettingResource.NewStruct()
+			db.Where("name = ?", "QorSeoGlobalSettings").First(s)
+			if db.NewRecord(s) {
+				s.(QorSeoSettingInterface).SetName("QorSeoGlobalSettings")
+				db.Save(s)
+			}
+			return s
 		})
 	}
 }
