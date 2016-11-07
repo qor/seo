@@ -56,6 +56,9 @@ type QorSeoSetting struct {
 type QorSeoSettingInterface interface {
 	GetName() string
 	SetName(name string)
+	GetTitle() string
+	GetDescription() string
+	GetKeywords() string
 }
 
 func (s QorSeoSetting) GetName() string {
@@ -64,6 +67,18 @@ func (s QorSeoSetting) GetName() string {
 
 func (s *QorSeoSetting) SetName(name string) {
 	s.Name = name
+}
+
+func (s QorSeoSetting) GetTitle() string {
+	return s.Setting.Title
+}
+
+func (s QorSeoSetting) GetDescription() string {
+	return s.Setting.Description
+}
+
+func (s QorSeoSetting) GetKeywords() string {
+	return s.Setting.Keywords
 }
 
 func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer) {
@@ -105,6 +120,33 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 			return s
 		})
 	}
+}
+
+// Render render SEO Setting
+func (seoCollection SeoCollection) Render(name string, objects ...interface{}) template.HTML {
+	seoSetting := seoCollection.SettingResource.NewStruct()
+	seoCollection.SettingResource.GetAdmin().Config.DB.Where("name = ?", name).Find(seoSetting)
+	seo := seoCollection.getSeo(name)
+	_ = seo.Context(objects...)
+	/*objTags := splitTags(seoCollection.Setting.Tags)
+	reflectValue := reflect.Indirect(reflect.ValueOf(seoSetting))
+	allTags := prependMainObjectTags(objTags, reflectValue)
+	title := replaceTags(setting.Title, allTags, seoSetting, obj...)
+	description := replaceTags(setting.Description, allTags, seoSetting, obj...)
+	keywords := replaceTags(setting.Keywords, allTags, seoSetting, obj...)*/
+	title := seoSetting.(QorSeoSettingInterface).GetTitle()
+	description := seoSetting.(QorSeoSettingInterface).GetDescription()
+	keywords := seoSetting.(QorSeoSettingInterface).GetKeywords()
+	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", title, description, keywords))
+}
+
+func (seoCollection *SeoCollection) getSeo(name string) *Seo {
+	for _, s := range seoCollection.registeredSeo {
+		if s.Name == name {
+			return s
+		}
+	}
+	return nil
 }
 
 // Setting could be used to field type for SEO Settings
