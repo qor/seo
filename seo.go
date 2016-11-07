@@ -53,6 +53,10 @@ type QorSeoSetting struct {
 	Setting Setting `gorm:"size:4294967295"`
 }
 
+type QorSeoResourceInterface interface {
+	GetSeoSetting() Setting
+}
+
 type QorSeoSettingInterface interface {
 	GetName() string
 	SetName(name string)
@@ -124,19 +128,41 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 
 // Render render SEO Setting
 func (seoCollection SeoCollection) Render(name string, objects ...interface{}) template.HTML {
+	return seoCollection.render(name, "", "", "", objects...)
+}
+
+func (seoCollection SeoCollection) RenderWithResource(name string, mainObj interface{}, objects ...interface{}) template.HTML {
+	if seoResource, ok := mainObj.(QorSeoResourceInterface); ok {
+		resourceSeoSetting := seoResource.GetSeoSetting()
+		allObjects := []interface{}{mainObj}
+		for _, obj := range objects {
+			allObjects = append(allObjects, obj)
+		}
+		return seoCollection.render(name, resourceSeoSetting.Title, resourceSeoSetting.Description, resourceSeoSetting.Keywords, allObjects...)
+	}
+	return template.HTML("Can't Render Seo")
+}
+
+func (seoCollection SeoCollection) render(name string, title string, description string, keywords string, objects ...interface{}) template.HTML {
 	seoSetting := seoCollection.SettingResource.NewStruct()
 	seoCollection.SettingResource.GetAdmin().Config.DB.Where("name = ?", name).Find(seoSetting)
 	seo := seoCollection.getSeo(name)
 	_ = seo.Context(objects...)
+	if title == "" {
+		title = seoSetting.(QorSeoSettingInterface).GetTitle()
+	}
+	if description == "" {
+		description = seoSetting.(QorSeoSettingInterface).GetDescription()
+	}
+	if keywords == "" {
+		keywords = seoSetting.(QorSeoSettingInterface).GetKeywords()
+	}
 	/*objTags := splitTags(seoCollection.Setting.Tags)
 	reflectValue := reflect.Indirect(reflect.ValueOf(seoSetting))
 	allTags := prependMainObjectTags(objTags, reflectValue)
 	title := replaceTags(setting.Title, allTags, seoSetting, obj...)
 	description := replaceTags(setting.Description, allTags, seoSetting, obj...)
 	keywords := replaceTags(setting.Keywords, allTags, seoSetting, obj...)*/
-	title := seoSetting.(QorSeoSettingInterface).GetTitle()
-	description := seoSetting.(QorSeoSettingInterface).GetDescription()
-	keywords := seoSetting.(QorSeoSettingInterface).GetKeywords()
 	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", title, description, keywords))
 }
 
@@ -220,7 +246,6 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 
 		res := meta.GetBaseResource().(*admin.Resource)
 		res.GetAdmin().RegisterViewPath("github.com/qor/seo/views")
-		//res.UseTheme("seo")
 		registerFunctions(res)
 	}
 }
