@@ -12,7 +12,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
-	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
 
@@ -25,7 +24,7 @@ type SeoCollection struct {
 type Seo struct {
 	Name     string
 	Settings []string
-	Context  func(...interface{}) map[string]interface{}
+	Context  func(...interface{}) map[string]string
 }
 
 func init() {
@@ -33,9 +32,6 @@ func init() {
 }
 
 func New() *SeoCollection {
-	/*settingRes := a.AddResource(&QorSeoSetting{}, &admin.Config{Invisible: false})
-	settingRes.Meta(&admin.Meta{Name: "Name", Type: "hidden"})
-	res.UseTheme("seo")*/
 	return &SeoCollection{}
 }
 
@@ -49,12 +45,13 @@ func (seoCollection *SeoCollection) RegisterSeo(seo *Seo) {
 
 type QorSeoSetting struct {
 	gorm.Model
-	Name    string
-	Setting Setting `gorm:"size:4294967295"`
+	Name          string
+	Setting       Setting `gorm:"size:4294967295"`
+	seoCollection *SeoCollection
 }
 
 type QorSeoResourceInterface interface {
-	GetSeoSetting() Setting
+	GetSeoSetting() *Setting
 }
 
 type QorSeoSettingInterface interface {
@@ -63,6 +60,7 @@ type QorSeoSettingInterface interface {
 	GetTitle() string
 	GetDescription() string
 	GetKeywords() string
+	SetSeoType(t string)
 }
 
 func (s QorSeoSetting) GetName() string {
@@ -83,6 +81,14 @@ func (s QorSeoSetting) GetDescription() string {
 
 func (s QorSeoSetting) GetKeywords() string {
 	return s.Setting.Keywords
+}
+
+func (s *QorSeoSetting) SetSeoType(t string) {
+	s.Setting.Type = t
+}
+
+func (s QorSeoSetting) GetSeoSetting() *Setting {
+	return &s.Setting
 }
 
 func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer) {
@@ -108,6 +114,7 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 				db.Where("name = ?", seo.Name).First(s)
 				if db.NewRecord(s) {
 					s.(QorSeoSettingInterface).SetName(seo.Name)
+					s.(QorSeoSettingInterface).SetSeoType(seo.Name)
 					db.Save(s)
 				}
 				settings = append(settings, s)
@@ -119,9 +126,17 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 			db.Where("name = ?", "QorSeoGlobalSettings").First(s)
 			if db.NewRecord(s) {
 				s.(QorSeoSettingInterface).SetName("QorSeoGlobalSettings")
+				s.(QorSeoSettingInterface).SetSeoType("QorSeoGlobalSettings")
 				db.Save(s)
 			}
 			return s
+		})
+		Admin.RegisterFuncMap("seoTags", func(name string) []string {
+			seo := seoCollection.GetSeo(name)
+			if seo == nil {
+				return []string{}
+			}
+			return seoCollection.GetSeo(name).Settings
 		})
 	}
 }
@@ -146,8 +161,7 @@ func (seoCollection SeoCollection) RenderWithResource(name string, mainObj inter
 func (seoCollection SeoCollection) render(name string, title string, description string, keywords string, objects ...interface{}) template.HTML {
 	seoSetting := seoCollection.SettingResource.NewStruct()
 	seoCollection.SettingResource.GetAdmin().Config.DB.Where("name = ?", name).Find(seoSetting)
-	seo := seoCollection.getSeo(name)
-	_ = seo.Context(objects...)
+	seo := seoCollection.GetSeo(name)
 	if title == "" {
 		title = seoSetting.(QorSeoSettingInterface).GetTitle()
 	}
@@ -157,16 +171,13 @@ func (seoCollection SeoCollection) render(name string, title string, description
 	if keywords == "" {
 		keywords = seoSetting.(QorSeoSettingInterface).GetKeywords()
 	}
-	/*objTags := splitTags(seoCollection.Setting.Tags)
-	reflectValue := reflect.Indirect(reflect.ValueOf(seoSetting))
-	allTags := prependMainObjectTags(objTags, reflectValue)
-	title := replaceTags(setting.Title, allTags, seoSetting, obj...)
-	description := replaceTags(setting.Description, allTags, seoSetting, obj...)
-	keywords := replaceTags(setting.Keywords, allTags, seoSetting, obj...)*/
+	title = replaceTags1(title, seo.Settings, seo.Context(objects...))
+	description = replaceTags1(description, seo.Settings, seo.Context(objects...))
+	keywords = replaceTags1(keywords, seo.Settings, seo.Context(objects...))
 	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", title, description, keywords))
 }
 
-func (seoCollection *SeoCollection) getSeo(name string) *Seo {
+func (seoCollection *SeoCollection) GetSeo(name string) *Seo {
 	for _, s := range seoCollection.registeredSeo {
 		if s.Name == name {
 			return s
@@ -182,6 +193,7 @@ type Setting struct {
 	Keywords    string
 	Tags        string
 	TagsArray   []string `json:"-"`
+	Type        string
 }
 
 type settingInterface interface {
@@ -226,26 +238,12 @@ func (setting Setting) Render(seoSetting interface{}, obj ...interface{}) templa
 func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 	if meta, ok := meta.(*admin.Meta); ok {
 		meta.Type = "seo"
-
-		if meta.GetValuer() == nil {
-			res := meta.GetBaseResource().(*admin.Resource)
-			Admin := res.GetAdmin()
-
-			tags := meta.FieldStruct.Struct.Tag.Get("seo")
-			tagsArray := splitTags(tags)
-			tagsArray = prependMainObjectTags(tagsArray, Admin.Config.DB.NewScope(res.Value).IndirectValue())
-
-			meta.SetValuer(func(value interface{}, ctx *qor.Context) interface{} {
-				settingField, _ := ctx.GetDB().NewScope(value).FieldByName(meta.FieldStruct.Struct.Name)
-				setting := settingField.Field.Interface().(settingInterface).GetSetting()
-				setting.Tags = tags
-				setting.TagsArray = tagsArray
-				return setting
-			})
-		}
-
 		res := meta.GetBaseResource().(*admin.Resource)
 		res.GetAdmin().RegisterViewPath("github.com/qor/seo/views")
+		res.GetAdmin().RegisterFuncMap("settingSeoType", func() string {
+			return meta.FieldStruct.Struct.Tag.Get("seo")
+		})
+
 		registerFunctions(res)
 	}
 }
@@ -295,6 +293,15 @@ func replaceTags(originalVal string, validTags []string, mainObj interface{}, ob
 	re := regexp.MustCompile("{{([a-zA-Z0-9]*)}}")
 	matches := re.FindAllStringSubmatch(originalVal, -1)
 	return replaceValues(originalVal, matches, append(obj, mainObj)...)
+}
+
+func replaceTags1(originalVal string, validTags []string, values map[string]string) string {
+	re := regexp.MustCompile("{{([a-zA-Z0-9]*)}}")
+	matches := re.FindAllStringSubmatch(originalVal, -1)
+	for _, match := range matches {
+		originalVal = strings.Replace(originalVal, match[0], values[match[1]], 1)
+	}
+	return originalVal
 }
 
 func isTagContains(tags []string, item string) bool {

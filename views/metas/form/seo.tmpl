@@ -7,7 +7,7 @@
   <h4 class="qor-section-title">{{t $attributesScoped $labelName}}</h4>
 
   <ul class="qor-seo-tags clearfix" data-input-id={{.InputId}}>
-    {{range $value.TagsArray}}
+    {{range seoTags $value.Type }}
       <li class="qor-seo-tag" data-tag-value="{{.}}"><i class="material-icons">add_box</i><span>{{.}}</span></li>
     {{end}}
   </ul>
@@ -33,6 +33,7 @@
     </div>
   </div>
 
-  <input type="hidden" class="qor-seo-tags-field" value="{{$value.Tags}}">
-  <input type="hidden" class="qor-seo-field" name={{.InputName}} />
+  <input type="hidden" class="qor-seo-tags-field" value="{{$value.Tags}}" />
+  <input type="hidden" class="qor-seo-type-field" name="{{.InputName}}.Type" value="{{$value.Type}}"/>
+  <input type="hidden" class="qor-seo-field" name="{{.InputName}}" />
 </div>
