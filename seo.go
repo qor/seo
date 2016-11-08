@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
 	"github.com/qor/qor/resource"
@@ -143,37 +142,40 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 
 // Render render SEO Setting
 func (seoCollection SeoCollection) Render(name string, objects ...interface{}) template.HTML {
-	return seoCollection.render(name, "", "", "", objects...)
-}
-
-func (seoCollection SeoCollection) RenderWithResource(name string, mainObj interface{}, objects ...interface{}) template.HTML {
-	if seoResource, ok := mainObj.(QorSeoResourceInterface); ok {
-		resourceSeoSetting := seoResource.GetSeoSetting()
-		allObjects := []interface{}{mainObj}
-		for _, obj := range objects {
-			allObjects = append(allObjects, obj)
+	var (
+		title       string
+		description string
+		keywords    string
+	)
+	setting := Setting{}
+	for _, obj := range objects {
+		value := reflect.ValueOf(obj)
+		for i := 0; i < value.NumField(); i++ {
+			if value.Field(i).Type() == reflect.TypeOf(Setting{}) {
+				setting = value.Field(i).Interface().(Setting)
+				break
+			}
 		}
-		return seoCollection.render(name, resourceSeoSetting.Title, resourceSeoSetting.Description, resourceSeoSetting.Keywords, allObjects...)
 	}
-	return template.HTML("Can't Render Seo")
-}
+	title = setting.Title
+	description = setting.Description
+	keywords = setting.Keywords
 
-func (seoCollection SeoCollection) render(name string, title string, description string, keywords string, objects ...interface{}) template.HTML {
-	seoSetting := seoCollection.SettingResource.NewStruct()
-	seoCollection.SettingResource.GetAdmin().Config.DB.Where("name = ?", name).Find(seoSetting)
+	globalSetting := seoCollection.SettingResource.NewStruct()
+	seoCollection.SettingResource.GetAdmin().Config.DB.Where("name = ?", name).Find(globalSetting)
 	seo := seoCollection.GetSeo(name)
 	if title == "" {
-		title = seoSetting.(QorSeoSettingInterface).GetTitle()
+		title = globalSetting.(QorSeoSettingInterface).GetTitle()
 	}
 	if description == "" {
-		description = seoSetting.(QorSeoSettingInterface).GetDescription()
+		description = globalSetting.(QorSeoSettingInterface).GetDescription()
 	}
 	if keywords == "" {
-		keywords = seoSetting.(QorSeoSettingInterface).GetKeywords()
+		keywords = globalSetting.(QorSeoSettingInterface).GetKeywords()
 	}
-	title = replaceTags1(title, seo.Settings, seo.Context(objects...))
-	description = replaceTags1(description, seo.Settings, seo.Context(objects...))
-	keywords = replaceTags1(keywords, seo.Settings, seo.Context(objects...))
+	title = replaceTags(title, seo.Settings, seo.Context(objects...))
+	description = replaceTags(description, seo.Settings, seo.Context(objects...))
+	keywords = replaceTags(keywords, seo.Settings, seo.Context(objects...))
 	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", title, description, keywords))
 }
 
@@ -221,17 +223,6 @@ func (setting *Setting) Scan(value interface{}) error {
 func (setting Setting) Value() (driver.Value, error) {
 	result, err := json.Marshal(setting)
 	return string(result), err
-}
-
-// Render render SEO Setting
-func (setting Setting) Render(seoSetting interface{}, obj ...interface{}) template.HTML {
-	objTags := splitTags(setting.Tags)
-	reflectValue := reflect.Indirect(reflect.ValueOf(seoSetting))
-	allTags := prependMainObjectTags(objTags, reflectValue)
-	title := replaceTags(setting.Title, allTags, seoSetting, obj...)
-	description := replaceTags(setting.Description, allTags, seoSetting, obj...)
-	keywords := replaceTags(setting.Keywords, allTags, seoSetting, obj...)
-	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", title, description, keywords))
 }
 
 // ConfigureQorMetaBeforeInitialize configure SEO setting for qor admin
@@ -289,13 +280,7 @@ func registerFunctions(res *admin.Resource) {
 }
 
 // Helpers
-func replaceTags(originalVal string, validTags []string, mainObj interface{}, obj ...interface{}) string {
-	re := regexp.MustCompile("{{([a-zA-Z0-9]*)}}")
-	matches := re.FindAllStringSubmatch(originalVal, -1)
-	return replaceValues(originalVal, matches, append(obj, mainObj)...)
-}
-
-func replaceTags1(originalVal string, validTags []string, values map[string]string) string {
+func replaceTags(originalVal string, validTags []string, values map[string]string) string {
 	re := regexp.MustCompile("{{([a-zA-Z0-9]*)}}")
 	matches := re.FindAllStringSubmatch(originalVal, -1)
 	for _, match := range matches {
@@ -336,22 +321,4 @@ func prependMainObjectTags(tags []string, mainValue reflect.Value) []string {
 		}
 	}
 	return results
-}
-
-func replaceValues(originalVal string, matches [][]string, objs ...interface{}) string {
-	for _, match := range matches {
-		for _, obj := range objs {
-			reflectValue := reflect.Indirect(reflect.ValueOf(obj))
-			if reflectValue.Kind() == reflect.Struct {
-				field := reflectValue.FieldByName(match[1])
-				if field.IsValid() {
-					value := field.Interface().(string)
-					originalVal = strings.Replace(originalVal, match[0], value, 1)
-				}
-			} else {
-				color.Yellow("[WARNING] Qor SEO: The parameter you passed is not a Struct")
-			}
-		}
-	}
-	return originalVal
 }
