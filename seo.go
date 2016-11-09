@@ -12,6 +12,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
 	"github.com/qor/qor/resource"
+	"github.com/qor/qor/utils"
 )
 
 type SeoCollection struct {
@@ -130,7 +131,7 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 			}
 			return s
 		})
-		Admin.RegisterFuncMap("seoTags", func(name string) []string {
+		Admin.RegisterFuncMap("seoTagsByType", func(name string) []string {
 			seo := seoCollection.GetSeo(name)
 			if seo == nil {
 				return []string{}
@@ -231,8 +232,13 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 		meta.Type = "seo"
 		res := meta.GetBaseResource().(*admin.Resource)
 		res.GetAdmin().RegisterViewPath("github.com/qor/seo/views")
-		res.GetAdmin().RegisterFuncMap("settingSeoType", func() string {
-			return meta.FieldStruct.Struct.Tag.Get("seo")
+		res.GetAdmin().RegisterFuncMap("seoType", func(value interface{}, meta admin.Meta) string {
+			typeFromTag := meta.FieldStruct.Struct.Tag.Get("seo")
+			typeFromTag = utils.ParseTagOption(typeFromTag)["TYPE"]
+			if typeFromTag != "" {
+				return typeFromTag
+			}
+			return value.(Setting).Type
 		})
 
 		registerFunctions(res)
@@ -287,38 +293,4 @@ func replaceTags(originalVal string, validTags []string, values map[string]strin
 		originalVal = strings.Replace(originalVal, match[0], values[match[1]], 1)
 	}
 	return originalVal
-}
-
-func isTagContains(tags []string, item string) bool {
-	for _, t := range tags {
-		if item == t {
-			return true
-		}
-	}
-	return false
-}
-
-func splitTags(tags string) []string {
-	var tagsArray []string
-	for _, tag := range strings.Split(tags, ",") {
-		tagsArray = append(tagsArray, strings.Trim(tag, " "))
-	}
-	return tagsArray
-}
-
-func prependMainObjectTags(tags []string, mainValue reflect.Value) []string {
-	var results []string
-	if mainValue.Kind() == reflect.Struct {
-		for i := 0; i < mainValue.NumField(); i++ {
-			if mainValue.Field(i).Kind() == reflect.String {
-				results = append(results, mainValue.Type().Field(i).Name)
-			}
-		}
-	}
-	for _, tag := range tags {
-		if tag != "" {
-			results = append(results, tag)
-		}
-	}
-	return results
 }
