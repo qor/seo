@@ -7,6 +7,9 @@
 
 <div class="qor-seo qor-field">
   <h4 class="qor-section-title">{{t $attributesScoped $labelName}}</h4>
+  <input type="checkbox" name="{{.InputName}}.EnabledCustomize" value="false" {{if not ($value.EnabledCustomize)}}checked{{end}} />
+  <input type="hidden" name="{{.InputName}}.EnabledCustomize" value="true" />
+  <label>{{ t "qor_seo.used_default" "Used Defaults" }}</label>
 
   <ul class="qor-seo-tags clearfix" data-input-id={{.InputId}}>
     {{range seoTagsByType (seoType $value .Meta) }}

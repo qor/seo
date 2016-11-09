@@ -147,31 +147,29 @@ func (seoCollection SeoCollection) Render(name string, objects ...interface{}) t
 		title       string
 		description string
 		keywords    string
+		setting     *Setting
 	)
-	setting := Setting{}
 	for _, obj := range objects {
 		value := reflect.ValueOf(obj)
 		for i := 0; i < value.NumField(); i++ {
 			if value.Field(i).Type() == reflect.TypeOf(Setting{}) {
-				setting = value.Field(i).Interface().(Setting)
+				s := value.Field(i).Interface().(Setting)
+				setting = &s
 				break
 			}
 		}
 	}
-	title = setting.Title
-	description = setting.Description
-	keywords = setting.Keywords
 
 	globalSetting := seoCollection.SettingResource.NewStruct()
 	seoCollection.SettingResource.GetAdmin().Config.DB.Where("name = ?", name).Find(globalSetting)
 	seo := seoCollection.GetSeo(name)
-	if title == "" {
+	if setting != nil && setting.EnabledCustomize {
+		title = setting.Title
+		description = setting.Description
+		keywords = setting.Keywords
+	} else {
 		title = globalSetting.(QorSeoSettingInterface).GetTitle()
-	}
-	if description == "" {
 		description = globalSetting.(QorSeoSettingInterface).GetDescription()
-	}
-	if keywords == "" {
 		keywords = globalSetting.(QorSeoSettingInterface).GetKeywords()
 	}
 	title = replaceTags(title, seo.Settings, seo.Context(objects...))
@@ -191,12 +189,13 @@ func (seoCollection *SeoCollection) GetSeo(name string) *Seo {
 
 // Setting could be used to field type for SEO Settings
 type Setting struct {
-	Title       string
-	Description string
-	Keywords    string
-	Tags        string
-	TagsArray   []string `json:"-"`
-	Type        string
+	Title            string
+	Description      string
+	Keywords         string
+	Tags             string
+	TagsArray        []string `json:"-"`
+	Type             string
+	EnabledCustomize bool
 }
 
 type settingInterface interface {
