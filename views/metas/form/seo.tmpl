@@ -3,7 +3,9 @@
 {{$inputName := .Meta.Name}}
 {{$labelName := .Meta.Label}}
 {{$attributesScoped := printf "%v.attributes.%v" .BaseResource.ToParam $labelName}}
-{{$value := raw_value_of .ResourceValue .Meta}}
+{{$rawValue := raw_value_of .ResourceValue .Meta}}
+{{$seoName := (seoType $rawValue .Meta)}}
+{{$value := append_default_seo_value $seoName $rawValue}}
 
 <div class="qor-seo qor-field">
   <h4 class="qor-section-title">{{t $attributesScoped $labelName}}</h4>
@@ -12,7 +14,7 @@
   <label>{{ t "qor_seo.used_default" "Used Defaults" }}</label>
 
   <ul class="qor-seo-tags clearfix" data-input-id={{.InputId}}>
-    {{range seoTagsByType (seoType $value .Meta) }}
+    {{range seoTagsByType $seoName }}
       <li class="qor-seo-tag" data-tag-value="{{.}}"><i class="material-icons">add_box</i><span>{{.}}</span></li>
     {{end}}
   </ul>

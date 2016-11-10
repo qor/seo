@@ -138,6 +138,19 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 			}
 			return seoCollection.GetSeo(name).Settings
 		})
+		Admin.RegisterFuncMap("append_default_seo_value", func(name string, value interface{}) interface{} {
+			globalInteface := seoCollection.SettingResource.NewStruct()
+			db.Where("name = ?", name).Find(globalInteface)
+			globalSetting := globalInteface.(QorSeoSettingInterface)
+			setting := value.(Setting)
+			if !setting.EnabledCustomize && setting.Title == "" && setting.Description == "" && setting.Keywords == "" {
+				setting.Title = globalSetting.GetTitle()
+				setting.Description = globalSetting.GetDescription()
+				setting.Keywords = globalSetting.GetKeywords()
+			}
+			return setting
+		})
+
 	}
 }
 
@@ -239,7 +252,6 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 			}
 			return value.(Setting).Type
 		})
-
 		registerFunctions(res)
 	}
 }
