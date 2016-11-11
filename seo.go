@@ -18,7 +18,7 @@ import (
 type SeoCollection struct {
 	SettingResource *admin.Resource
 	registeredSeo   []*Seo
-	setting         interface{}
+	globalSetting   interface{}
 }
 
 type Seo struct {
@@ -36,7 +36,7 @@ func New() *SeoCollection {
 }
 
 func (seoCollection *SeoCollection) RegisterGlobalSetting(s interface{}) {
-	seoCollection.setting = s
+	seoCollection.globalSetting = s
 }
 
 func (seoCollection *SeoCollection) RegisterSeo(seo *Seo) {
@@ -60,6 +60,7 @@ type QorSeoSettingInterface interface {
 	GetTitle() string
 	GetDescription() string
 	GetKeywords() string
+	GetGlobalSetting() map[string]string
 	SetSeoType(t string)
 }
 
@@ -89,6 +90,10 @@ func (s *QorSeoSetting) SetSeoType(t string) {
 
 func (s QorSeoSetting) GetSeoSetting() *Setting {
 	return &s.Setting
+}
+
+func (s QorSeoSetting) GetGlobalSetting() map[string]string {
+	return s.Setting.GlobalSetting
 }
 
 func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer) {
@@ -121,7 +126,20 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 			}
 			return settings
 		})
-		Admin.RegisterFuncMap("globalSeoSection", func() interface{} {
+		Admin.RegisterFuncMap("seoGlobalSettingValue", func(setting map[string]string) interface{} {
+			value := reflect.Indirect(reflect.ValueOf(seoCollection.globalSetting))
+			for i := 0; i < value.NumField(); i++ {
+				fieldName := value.Type().Field(i).Name
+				if setting[fieldName] != "" {
+					value.Field(i).SetString(setting[fieldName])
+				}
+			}
+			return value.Interface()
+		})
+		Admin.RegisterFuncMap("seoGlobalSettingMetas", func() []*admin.Section {
+			return Admin.AddResource(seoCollection.globalSetting).NewAttrs()
+		})
+		Admin.RegisterFuncMap("seoGlobalSetting", func() interface{} {
 			s := seoCollection.SettingResource.NewStruct()
 			db.Where("name = ?", "QorSeoGlobalSettings").First(s)
 			if db.NewRecord(s) {
@@ -138,7 +156,7 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 			}
 			return seoCollection.GetSeo(name).Settings
 		})
-		Admin.RegisterFuncMap("append_default_seo_value", func(name string, value interface{}) interface{} {
+		Admin.RegisterFuncMap("seoAppendDefaultValue", func(name string, value interface{}) interface{} {
 			globalInteface := seoCollection.SettingResource.NewStruct()
 			db.Where("name = ?", name).Find(globalInteface)
 			globalSetting := globalInteface.(QorSeoSettingInterface)
@@ -209,6 +227,7 @@ type Setting struct {
 	TagsArray        []string `json:"-"`
 	Type             string
 	EnabledCustomize bool
+	GlobalSetting    map[string]string
 }
 
 type settingInterface interface {

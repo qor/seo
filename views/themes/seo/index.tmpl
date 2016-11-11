@@ -1,10 +1,5 @@
 {{$resource := .Resource}}
-{{$actions := load_actions "new"}}
-{{if $actions}}
-  <div class="qor-page__header">
-    {{$actions}}
-  </div>
-{{end}}
+{{$seoGlobalSetting := seoGlobalSetting}}
 
 <div class="qor-page__body qor-page__col-2">
   {{render "shared/flashes"}}
@@ -32,12 +27,15 @@
   </div>
 
   <div class="qor-page__col-right">
-    <div class="qor-form-container">
-      <form class="qor-form" action="{{url_for globalSeoSection .Resource}}" method="POST" enctype="multipart/form-data">
+    <div class="qor-form-container qor-seo">
+      <form class="qor-form" action="{{url_for $seoGlobalSetting .Resource}}" method="POST" enctype="multipart/form-data">
         <input name="_method" value="PUT" type="hidden">
+        <input name="QorResource.ID" value="30" type="hidden">
+        <input type="hidden" class="qor-seo-field" name="QorResource.Setting">
+        {{ render_form (seoGlobalSettingValue $seoGlobalSetting.GetGlobalSetting) seoGlobalSettingMetas }}
 
         <div class="qor-form__actions">
-          <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">
+          <button class="qor-seo-submit mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">
             {{t "qor_admin.form.save_changes" "Save Changes"}}
           </button>
         </div>

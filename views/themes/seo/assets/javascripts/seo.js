@@ -78,7 +78,8 @@
                 "Title": titleValue,
                 "Description": descriptionValue,
                 "Keywords": keywordsValue,
-                "Tags": tagsValue
+                "Tags": tagsValue,
+                "GlobalSetting": { "SiteName" : "Qor", "BrandName" : "ThePlant" }
             });
 
             var url = this.$wrap.find(".qor-form").attr("action");

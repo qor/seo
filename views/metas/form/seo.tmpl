@@ -5,7 +5,7 @@
 {{$attributesScoped := printf "%v.attributes.%v" .BaseResource.ToParam $labelName}}
 {{$rawValue := raw_value_of .ResourceValue .Meta}}
 {{$seoName := (seoType $rawValue .Meta)}}
-{{$value := append_default_seo_value $seoName $rawValue}}
+{{$value := seoAppendDefaultValue $seoName $rawValue}}
 
 <div class="qor-seo qor-field">
   <h4 class="qor-section-title">{{t $attributesScoped $labelName}}</h4>
