@@ -27,7 +27,7 @@
   </div>
 
   <div class="qor-page__col-right">
-    <div class="qor-form-container qor-seo">
+    <div class="qor-form-container qor-seo" data-toggle="qor.seo" data-global-setting="true">
       <form class="qor-form" action="{{url_for $seoGlobalSetting .Resource}}" method="POST" enctype="multipart/form-data">
         <input name="_method" value="PUT" type="hidden">
         <input name="QorResource.ID" value="30" type="hidden">
@@ -52,7 +52,7 @@
 
   <div class="qor-page__col-right">
     {{range seoSections}}
-      <div class="qor-seo">
+      <div class="qor-seo" data-toggle="qor.seo">
         <form class="qor-form" action="{{url_for . $resource}}" method="POST" enctype="multipart/form-data">
           <input name="_method" value="PUT" type="hidden">
           <div class="qor-form-container">
