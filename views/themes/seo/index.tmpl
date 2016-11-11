@@ -1,4 +1,4 @@
-{{$resource := .Resource}}
+{{$resource := .Result.SettingResource}}
 {{$seoGlobalSetting := seoGlobalSetting}}
 
 <div class="qor-page__body qor-page__col-2">
@@ -28,14 +28,12 @@
 
   <div class="qor-page__col-right">
     <div class="qor-form-container qor-seo" data-toggle="qor.seo" data-global-setting="true">
-      <form class="qor-form" action="{{url_for $seoGlobalSetting .Resource}}" method="POST" enctype="multipart/form-data">
+      <form class="qor-form" action="{{seo_url_for $seoGlobalSetting}}" method="POST" enctype="multipart/form-data">
         <input name="_method" value="PUT" type="hidden">
-        <input name="QorResource.ID" value="30" type="hidden">
-        <input type="hidden" class="qor-seo-field" name="QorResource.Setting">
-        {{ render_form (seoGlobalSettingValue $seoGlobalSetting.GetGlobalSetting) seoGlobalSettingMetas }}
+        {{render_form (seoGlobalSettingValue $seoGlobalSetting.GetGlobalSetting) seoGlobalSettingMetas}}
 
         <div class="qor-form__actions">
-          <button class="qor-seo-submit mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">
+          <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">
             {{t "qor_admin.form.save_changes" "Save Changes"}}
           </button>
         </div>
@@ -53,7 +51,7 @@
   <div class="qor-page__col-right">
     {{range seoSections}}
       <div class="qor-seo" data-toggle="qor.seo">
-        <form class="qor-form" action="{{url_for . $resource}}" method="POST" enctype="multipart/form-data">
+        <form class="qor-form" action="{{seo_url_for .}}" method="POST" enctype="multipart/form-data">
           <input name="_method" value="PUT" type="hidden">
           <div class="qor-form-container">
             {{render_form . new_sections }}

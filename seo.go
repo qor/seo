@@ -50,10 +50,6 @@ type QorSeoSetting struct {
 	seoCollection *SeoCollection
 }
 
-type QorSeoResourceInterface interface {
-	GetSeoSetting() *Setting
-}
-
 type QorSeoSettingInterface interface {
 	GetName() string
 	SetName(name string)
@@ -61,6 +57,7 @@ type QorSeoSettingInterface interface {
 	GetDescription() string
 	GetKeywords() string
 	GetGlobalSetting() map[string]string
+	SetGlobalSetting(map[string]string)
 	SetSeoType(t string)
 }
 
@@ -88,12 +85,12 @@ func (s *QorSeoSetting) SetSeoType(t string) {
 	s.Setting.Type = t
 }
 
-func (s QorSeoSetting) GetSeoSetting() *Setting {
-	return &s.Setting
-}
-
 func (s QorSeoSetting) GetGlobalSetting() map[string]string {
 	return s.Setting.GlobalSetting
+}
+
+func (s *QorSeoSetting) SetGlobalSetting(globalSetting map[string]string) {
+	s.Setting.GlobalSetting = globalSetting
 }
 
 func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer) {
@@ -111,8 +108,10 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 		res.Config.Singleton = true
 		res.UseTheme("seo")
 		router := Admin.GetRouter()
-		controller := seoController{SeoCollection: seoCollection}
+		controller := seoController{SeoCollection: seoCollection, MainResource: res}
 		router.Get(res.ToParam(), controller.Index)
+		router.Put(fmt.Sprintf("%v/%v", res.ToParam(), seoCollection.SettingResource.ParamIDName()), controller.Update)
+
 		Admin.RegisterFuncMap("seoSections", func() []interface{} {
 			settings := []interface{}{}
 			for _, seo := range seoCollection.registeredSeo {
@@ -169,7 +168,9 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 			}
 			return setting
 		})
-
+		Admin.RegisterFuncMap("seo_url_for", func(value interface{}) string {
+			return fmt.Sprintf("%v/%v/%v", Admin.GetRouter().Prefix, res.ToParam(), db.NewScope(value).PrimaryKeyValue())
+		})
 	}
 }
 
