@@ -104,8 +104,9 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 			seoCollection.SettingResource = res.GetAdmin().AddResource(&QorSeoSetting{}, &admin.Config{Invisible: true})
 		}
 		seoCollection.SettingResource.UseTheme("seo")
-		nameMeta := seoCollection.SettingResource.GetMeta("Name")
+		nameMeta := seoCollection.SettingResource.GetMetaOrNew("Name")
 		nameMeta.Type = "hidden"
+		globalSettingRes := Admin.AddResource(seoCollection.globalSetting, &admin.Config{Invisible: true})
 
 		res.Config.Singleton = true
 		res.UseTheme("seo")
@@ -137,7 +138,7 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 			return value.Interface()
 		})
 		Admin.RegisterFuncMap("seoGlobalSettingMetas", func() []*admin.Section {
-			return Admin.AddResource(seoCollection.globalSetting).NewAttrs()
+			return globalSettingRes.NewAttrs()
 		})
 		Admin.RegisterFuncMap("seoGlobalSetting", func() interface{} {
 			s := seoCollection.SettingResource.NewStruct()
