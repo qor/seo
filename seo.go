@@ -50,8 +50,6 @@ type Setting struct {
 	Title            string
 	Description      string
 	Keywords         string
-	Tags             string
-	TagsArray        []string `json:"-"`
 	Type             string
 	EnabledCustomize bool
 	GlobalSetting    map[string]string
@@ -201,19 +199,22 @@ func (seoCollection SeoCollection) Render(name string, objects ...interface{}) t
 		keywords    string
 		setting     *Setting
 	)
+	db := seoCollection.SettingResource.GetAdmin().Config.DB
 	for _, obj := range objects {
 		value := reflect.ValueOf(obj)
-		for i := 0; i < value.NumField(); i++ {
-			if value.Field(i).Type() == reflect.TypeOf(Setting{}) {
-				s := value.Field(i).Interface().(Setting)
-				setting = &s
-				break
+		if value.IsValid() && value.Kind().String() != "string" {
+			for i := 0; i < value.NumField(); i++ {
+				if value.Field(i).Type() == reflect.TypeOf(Setting{}) {
+					s := value.Field(i).Interface().(Setting)
+					setting = &s
+					break
+				}
 			}
 		}
 	}
 
 	globalSetting := seoCollection.SettingResource.NewStruct()
-	seoCollection.SettingResource.GetAdmin().Config.DB.Where("name = ?", name).Find(globalSetting)
+	db.Where("name = ?", name).Find(globalSetting)
 	seo := seoCollection.GetSeo(name)
 	if setting != nil && setting.EnabledCustomize {
 		title = setting.Title
@@ -224,9 +225,17 @@ func (seoCollection SeoCollection) Render(name string, objects ...interface{}) t
 		description = globalSetting.(QorSeoSettingInterface).GetDescription()
 		keywords = globalSetting.(QorSeoSettingInterface).GetKeywords()
 	}
-	title = replaceTags(title, seo.Settings, seo.Context(objects...))
-	description = replaceTags(description, seo.Settings, seo.Context(objects...))
-	keywords = replaceTags(keywords, seo.Settings, seo.Context(objects...))
+	tagValues := seo.Context(objects...)
+	s := seoCollection.SettingResource.NewStruct()
+	db.Where("name = ?", "QorSeoGlobalSettings").First(s)
+	for k, v := range s.(QorSeoSettingInterface).GetGlobalSetting() {
+		if tagValues[k] == "" {
+			tagValues[k] = v
+		}
+	}
+	title = replaceTags(title, seo.Settings, tagValues)
+	description = replaceTags(description, seo.Settings, tagValues)
+	keywords = replaceTags(keywords, seo.Settings, tagValues)
 	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", title, description, keywords))
 }
 
