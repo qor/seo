@@ -27,22 +27,6 @@ type Seo struct {
 	Context  func(...interface{}) map[string]string
 }
 
-func init() {
-	admin.RegisterViewPath("github.com/qor/seo/views")
-}
-
-func New() *SeoCollection {
-	return &SeoCollection{}
-}
-
-func (seoCollection *SeoCollection) RegisterGlobalSetting(s interface{}) {
-	seoCollection.globalSetting = s
-}
-
-func (seoCollection *SeoCollection) RegisterSeo(seo *Seo) {
-	seoCollection.registeredSeo = append(seoCollection.registeredSeo, seo)
-}
-
 type QorSeoSetting struct {
 	gorm.Model
 	Name          string
@@ -59,6 +43,34 @@ type QorSeoSettingInterface interface {
 	GetGlobalSetting() map[string]string
 	SetGlobalSetting(map[string]string)
 	SetSeoType(t string)
+}
+
+// Setting could be used to field type for SEO Settings
+type Setting struct {
+	Title            string
+	Description      string
+	Keywords         string
+	Tags             string
+	TagsArray        []string `json:"-"`
+	Type             string
+	EnabledCustomize bool
+	GlobalSetting    map[string]string
+}
+
+func init() {
+	admin.RegisterViewPath("github.com/qor/seo/views")
+}
+
+func New() *SeoCollection {
+	return &SeoCollection{}
+}
+
+func (seoCollection *SeoCollection) RegisterGlobalSetting(s interface{}) {
+	seoCollection.globalSetting = s
+}
+
+func (seoCollection *SeoCollection) RegisterSeo(seo *Seo) {
+	seoCollection.registeredSeo = append(seoCollection.registeredSeo, seo)
 }
 
 func (s QorSeoSetting) GetName() string {
@@ -227,27 +239,6 @@ func (seoCollection *SeoCollection) GetSeo(name string) *Seo {
 	return nil
 }
 
-// Setting could be used to field type for SEO Settings
-type Setting struct {
-	Title            string
-	Description      string
-	Keywords         string
-	Tags             string
-	TagsArray        []string `json:"-"`
-	Type             string
-	EnabledCustomize bool
-	GlobalSetting    map[string]string
-}
-
-type settingInterface interface {
-	GetSetting() Setting
-}
-
-// GetSetting return itself to match interface
-func (setting Setting) GetSetting() Setting {
-	return setting
-}
-
 // Scan scan value from database into struct
 func (setting *Setting) Scan(value interface{}) error {
 	if bytes, ok := value.([]byte); ok {
@@ -280,48 +271,7 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 			}
 			return value.(Setting).Type
 		})
-		registerFunctions(res)
 	}
-}
-
-func registerFunctions(res *admin.Resource) {
-	res.GetAdmin().RegisterFuncMap("filter_default_var_sections", func(sections []*admin.Section) []*admin.Section {
-		var filterDefaultVarSections []*admin.Section
-		for _, section := range sections {
-			isContainSeoTag := false
-			for _, row := range section.Rows {
-				for _, col := range row {
-					meta := res.GetMetaOrNew(col)
-					if meta != nil && meta.Type == "seo" {
-						isContainSeoTag = true
-					}
-				}
-			}
-			if !isContainSeoTag {
-				filterDefaultVarSections = append(filterDefaultVarSections, section)
-			}
-		}
-		return filterDefaultVarSections
-	})
-
-	res.GetAdmin().RegisterFuncMap("filter_page_sections", func(sections []*admin.Section) []*admin.Section {
-		var filterPageSections []*admin.Section
-		for _, section := range sections {
-			isContainSeoTag := false
-			for _, row := range section.Rows {
-				for _, col := range row {
-					meta := res.GetMetaOrNew(col)
-					if meta != nil && meta.Type == "seo" {
-						isContainSeoTag = true
-					}
-				}
-			}
-			if isContainSeoTag {
-				filterPageSections = append(filterPageSections, section)
-			}
-		}
-		return filterPageSections
-	})
 }
 
 // Helpers
