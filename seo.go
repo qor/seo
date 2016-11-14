@@ -149,12 +149,19 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 			}
 			return s
 		})
-		Admin.RegisterFuncMap("seoTagsByType", func(name string) []string {
+		Admin.RegisterFuncMap("seoTagsByType", func(name string) (tags []string) {
 			seo := seoCollection.GetSeo(name)
 			if seo == nil {
 				return []string{}
 			}
-			return seoCollection.GetSeo(name).Settings
+			value := reflect.Indirect(reflect.ValueOf(seoCollection.globalSetting))
+			for i := 0; i < value.NumField(); i++ {
+				tags = append(tags, value.Type().Field(i).Name)
+			}
+			for _, s := range seoCollection.GetSeo(name).Settings {
+				tags = append(tags, s)
+			}
+			return tags
 		})
 		Admin.RegisterFuncMap("seoAppendDefaultValue", func(name string, value interface{}) interface{} {
 			globalInteface := seoCollection.SettingResource.NewStruct()
