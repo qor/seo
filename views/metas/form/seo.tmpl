@@ -9,11 +9,11 @@
   <h4 class="qor-section-title qor-seo-title" style="display: none;">{{t (printf "qor_seo.%v.title" $seoName) $seoName}}</h4>
 
   <div class="qor-seo__defaults">
-    <input type="hidden" name="{{.InputName}}.EnabledCustomize" value="true" />
     <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="{{$seoName}}.EnabledCustomize">
       <input type="checkbox" name="{{.InputName}}.EnabledCustomize" id="{{$seoName}}.EnabledCustomize" class="mdl-checkbox__input qor-seo__defaults-input" value="false" {{if not ($value.EnabledCustomize)}}checked{{end}} />
       <span class="mdl-checkbox__label">{{ t "qor_seo.use_default" "Use Defaults" }}</span>
     </label>
+    <input type="hidden" name="{{.InputName}}.EnabledCustomize" value="true" />
   </div>
 
   <div class="qor-seo__settings" {{if not ($value.EnabledCustomize)}}style="display: none;"{{end}}>
