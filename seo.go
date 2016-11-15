@@ -271,7 +271,6 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 	if meta, ok := meta.(*admin.Meta); ok {
 		meta.Type = "seo"
 		res := meta.GetBaseResource().(*admin.Resource)
-		res.GetAdmin().RegisterViewPath("github.com/qor/seo/views")
 		res.GetAdmin().RegisterFuncMap("seoType", func(value interface{}, meta admin.Meta) string {
 			typeFromTag := meta.FieldStruct.Struct.Tag.Get("seo")
 			typeFromTag = utils.ParseTagOption(typeFromTag)["TYPE"]
@@ -280,6 +279,7 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 			}
 			return value.(Setting).Type
 		})
+		res.UseTheme("seo_meta")
 	}
 }
 
