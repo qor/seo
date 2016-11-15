@@ -55,7 +55,7 @@ func TestRender(t *testing.T) {
 	var testCases []RenderTestCase
 	testCases = append(testCases,
 		// Seo setting are empty
-		RenderTestCase{"Qor", seo.Setting{Title: "", Description: "", Keywords: ""}, nil, nil, `<title></title><meta name="description" content=""><meta name="keywords" content=""/>`},
+		RenderTestCase{"Qor", seo.Setting{Title: "", Description: "", Keywords: ""}, nil, 123, `<title></title><meta name="description" content=""><meta name="keywords" content=""/>`},
 		// Seo setting have value but variables are emptry
 		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{SiteName}}", Keywords: "{{SiteName}}"}, "", "", `<title>Qor</title><meta name="description" content="Qor"><meta name="keywords" content="Qor"/>`},
 		// Seo setting have value and variables are present
@@ -114,7 +114,9 @@ func setupSeoCollection() {
 				context["Name"] = objects[0].(string)
 			}
 			if len(objects) > 1 && objects[1] != nil {
-				context["URLTitle"] = objects[1].(string)
+				if v, ok := objects[1].(string); ok {
+					context["URLTitle"] = v
+				}
 			}
 			return context
 		},

@@ -202,7 +202,7 @@ func (seoCollection SeoCollection) Render(name string, objects ...interface{}) t
 	db := seoCollection.SettingResource.GetAdmin().Config.DB
 	for _, obj := range objects {
 		value := reflect.ValueOf(obj)
-		if value.IsValid() && value.Kind().String() != "string" {
+		if value.IsValid() && value.Kind().String() == "struct" {
 			for i := 0; i < value.NumField(); i++ {
 				if value.Field(i).Type() == reflect.TypeOf(Setting{}) {
 					s := value.Field(i).Interface().(Setting)
