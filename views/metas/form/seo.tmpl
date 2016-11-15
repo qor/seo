@@ -1,5 +1,3 @@
-<link type="text/css" rel="stylesheet" href="/admin/assets/stylesheets/seo.css?theme=seo">
-<script src="/admin/assets/javascripts/seo.js?theme=seo"></script>
 {{$inputName := .Meta.Name}}
 {{$labelName := .Meta.Label}}
 {{$rawValue := raw_value_of .ResourceValue .Meta}}
@@ -14,7 +12,7 @@
     <input type="hidden" name="{{.InputName}}.EnabledCustomize" value="true" />
     <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="{{$seoName}}.EnabledCustomize">
       <input type="checkbox" name="{{.InputName}}.EnabledCustomize" id="{{$seoName}}.EnabledCustomize" class="mdl-checkbox__input qor-seo__defaults-input" value="false" {{if not ($value.EnabledCustomize)}}checked{{end}} />
-      <span class="mdl-checkbox__label">{{ t "qor_seo.used_default" "Used Defaults" }}</span>
+      <span class="mdl-checkbox__label">{{ t "qor_seo.use_default" "Use Defaults" }}</span>
     </label>
   </div>
 
