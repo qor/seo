@@ -20,6 +20,8 @@
     var CLASS_SUBMIT = ".qor-seo-submit";
     var CLASS_ADD_TAGS_NAME = ".qor-seo-tag";
     var CLASS_TAGS_INPUT_NAME = ".qor-seo-input-field";
+    var CLASS_DEFAULT_INPUT = ".qor-seo__defaults-input";
+    var CLASS_SETTINGS = ".qor-seo__settings";
 
     function QorSeo(element, options) {
         this.$element = $(element);
@@ -32,12 +34,13 @@
 
         constructor: QorSeo,
 
-        init: function(){
+        init: function() {
             var $element = this.$element;
 
             this.$submit = $element.find(CLASS_SUBMIT);
             this.$addTgas = $element.find(CLASS_ADD_TAGS_NAME);
             this.$tagInputs = $element.find(CLASS_TAGS_INPUT_NAME);
+            this.$settingInput = $element.find(CLASS_DEFAULT_INPUT);
             this.bind();
         },
 
@@ -45,10 +48,26 @@
             this.$submit.on(EVENT_CLICK, $.proxy(this.submitSeo, this));
             this.$tagInputs.on('click keyup', $.proxy(this.tagInputsFocus, this));
             this.$tagInputs.on(EVENT_BLUR, $.proxy(this.tagInputsBlur, this));
+            this.$settingInput.on(EVENT_CLICK, $.proxy(this.toggleDefault, this));
             this.$addTgas.on(EVENT_CLICK, $.proxy(this.addTags, this));
         },
 
-        tagInputsFocus: function(){
+        unbind: function () {
+            this.$submit.off(EVENT_CLICK, $.proxy(this.submitSeo, this));
+            this.$tagInputs.off('click keyup', $.proxy(this.tagInputsFocus, this));
+            this.$tagInputs.off(EVENT_BLUR, $.proxy(this.tagInputsBlur, this));
+            this.$settingInput.off(EVENT_CLICK, $.proxy(this.toggleDefault, this));
+            this.$addTgas.off(EVENT_CLICK, $.proxy(this.addTags, this));
+        },
+
+        toggleDefault: function () {
+            var isChecked = this.$settingInput.is(':checked'),
+                $settings = $(CLASS_SETTINGS);
+
+            isChecked ? $settings.hide() : $settings.show();
+        },
+
+        tagInputsFocus: function () {
             this.$addTgas.addClass('focus');
             var $focusedInput = $(document.activeElement);
 
@@ -58,12 +77,12 @@
             this.focusedInputVal = $focusedInput.val();
         },
 
-        tagInputsBlur: function(){
+        tagInputsBlur: function () {
             this.$addTgas.removeClass('focus');
             this.$focusedInputID = false;
         },
 
-        addTags: function(event){
+        addTags: function (e) {
             if (!this.focusedInputID){
                 return;
             }
@@ -71,13 +90,13 @@
             var newVal = "";
             var startString = this.focusedInputVal.substring(0,this.focusedInputStart);
             var endString = this.focusedInputVal.substring(this.focusedInputEnd,this.focusedInputVal.length);
-            var tagVal = "{{"+$(event.currentTarget).data("tagValue")+"}}";
+            var tagVal = "{{"+$(e.currentTarget).data("tagValue")+"}}";
 
             newVal = startString + tagVal + endString;
             $("#"+this.focusedInputID).val(newVal).focus();
         },
 
-        submitSeo: function(){
+        submitSeo: function() {
             var $element = this.$element,
                 $form = $element.find(".qor-form");
 
@@ -102,6 +121,11 @@
                 }
             });
             return false;
+        },
+
+        destroy: function () {
+            this.unbind();
+            this.$element.removeData(NAMESPACE);
         }
     };
 

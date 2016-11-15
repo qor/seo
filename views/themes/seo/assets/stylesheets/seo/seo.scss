@@ -61,3 +61,15 @@
 		line-height: 1.5;
 	}
 }
+
+.qor-seo__settings{
+	margin-top: 24px;
+}
+.qor-seo__index{
+	.qor-seo__defaults{
+		display: none;
+	}
+	.qor-seo-title,.qor-seo__settings{
+		display: block !important;
+	}
+}

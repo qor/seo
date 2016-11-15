@@ -1,44 +1,52 @@
-<!-- <link type="text/css" rel="stylesheet" href="/admin/assets/stylesheets/seo.css?theme=seo"> -->
-<!-- <script src="/admin/assets/javascripts/seo.js?theme=seo"></script> -->
+<link type="text/css" rel="stylesheet" href="/admin/assets/stylesheets/seo.css?theme=seo">
+<script src="/admin/assets/javascripts/seo.js?theme=seo"></script>
 {{$inputName := .Meta.Name}}
 {{$labelName := .Meta.Label}}
 {{$rawValue := raw_value_of .ResourceValue .Meta}}
 {{$seoName := (seoType $rawValue .Meta)}}
 {{$value := seoAppendDefaultValue $seoName $rawValue}}
 
-<div class="qor-seo qor-field">
-  <h4 class="qor-section-title">{{t (printf "qor_seo.%v.title" $seoName) $seoName}}</h4>
-  <input type="checkbox" name="{{.InputName}}.EnabledCustomize" value="false" {{if not ($value.EnabledCustomize)}}checked{{end}} />
-  <input type="hidden" name="{{.InputName}}.EnabledCustomize" value="true" />
-  <label>{{ t "qor_seo.used_default" "Used Defaults" }}</label>
+<div class="qor-seo qor-field" data-toggle="qor.seo">
 
-  <ul class="qor-seo-tags clearfix" data-input-id={{.InputId}}>
-    {{range seoTagsByType $seoName }}
-      <li class="qor-seo-tag" data-tag-value="{{.}}"><i class="material-icons">add_box</i><span>{{.}}</span></li>
-    {{end}}
-  </ul>
+  <h4 class="qor-section-title qor-seo-title" style="display: none;">{{t (printf "qor_seo.%v.title" $seoName) $seoName}}</h4>
 
-  <div class="qor-field">
-    <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
-      <input class="qor-seo-input-field qor-seo-title-field mdl-textfield__input" type="text" id="{{.InputId}}_Title" name="{{.InputName}}.Title" {{if $value}}value="{{$value.Title}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
-      <label class="mdl-textfield__label" for="{{.InputId}}_Title">{{t (printf "%v.title" .BaseResource.ToParam) "HTML Title"}}</label>
-    </div>
+  <div class="qor-seo__defaults">
+    <input type="hidden" name="{{.InputName}}.EnabledCustomize" value="true" />
+    <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="{{$seoName}}.EnabledCustomize">
+      <input type="checkbox" name="{{.InputName}}.EnabledCustomize" id="{{$seoName}}.EnabledCustomize" class="mdl-checkbox__input qor-seo__defaults-input" value="false" {{if not ($value.EnabledCustomize)}}checked{{end}} />
+      <span class="mdl-checkbox__label">{{ t "qor_seo.used_default" "Used Defaults" }}</span>
+    </label>
   </div>
 
-  <div class="qor-field">
-    <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
-      <input class="qor-seo-input-field qor-seo-description-field mdl-textfield__input" type="text" id="{{.InputId}}_Description" name="{{.InputName}}.Description" {{if $value}}value="{{$value.Description}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
-      <label class="mdl-textfield__label" for="{{.InputId}}_Description">{{t (printf "%v.description" .BaseResource.ToParam) "Meta Description"}}</label>
-    </div>
-  </div>
+  <div class="qor-seo__settings" {{if not ($value.EnabledCustomize)}}style="display: none;"{{end}}>
+    <ul class="qor-seo-tags clearfix" data-input-id={{.InputId}}>
+      {{range seoTagsByType $seoName }}
+        <li class="qor-seo-tag" data-tag-value="{{.}}"><i class="material-icons">add_box</i><span>{{.}}</span></li>
+      {{end}}
+    </ul>
 
-  <div class="qor-field">
-    <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
-      <input class="qor-seo-input-field qor-seo-keywords-field mdl-textfield__input" type="text" id="{{.InputId}}_Keywords" name="{{.InputName}}.Keywords" {{if $value}}value="{{$value.Keywords}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
-      <label class="mdl-textfield__label" for="{{.InputId}}_Keywords">{{t (printf "%v.keywords" .BaseResource.ToParam) "Meta Keywords"}}</label>
+    <div class="qor-field">
+      <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
+        <input class="qor-seo-input-field qor-seo-title-field mdl-textfield__input" type="text" id="{{.InputId}}_Title" name="{{.InputName}}.Title" {{if $value}}value="{{$value.Title}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+        <label class="mdl-textfield__label" for="{{.InputId}}_Title">{{t (printf "%v.title" .BaseResource.ToParam) "HTML Title"}}</label>
+      </div>
     </div>
-  </div>
 
-  <input type="hidden" class="qor-seo-type-field" name="{{.InputName}}.Type" value="{{$value.Type}}"/>
-  <input type="hidden" class="qor-seo-field" name="{{.InputName}}" />
+    <div class="qor-field">
+      <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
+        <input class="qor-seo-input-field qor-seo-description-field mdl-textfield__input" type="text" id="{{.InputId}}_Description" name="{{.InputName}}.Description" {{if $value}}value="{{$value.Description}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+        <label class="mdl-textfield__label" for="{{.InputId}}_Description">{{t (printf "%v.description" .BaseResource.ToParam) "Meta Description"}}</label>
+      </div>
+    </div>
+
+    <div class="qor-field">
+      <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
+        <input class="qor-seo-input-field qor-seo-keywords-field mdl-textfield__input" type="text" id="{{.InputId}}_Keywords" name="{{.InputName}}.Keywords" {{if $value}}value="{{$value.Keywords}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+        <label class="mdl-textfield__label" for="{{.InputId}}_Keywords">{{t (printf "%v.keywords" .BaseResource.ToParam) "Meta Keywords"}}</label>
+      </div>
+    </div>
+
+    <input type="hidden" class="qor-seo-type-field" name="{{.InputName}}.Type" value="{{$value.Type}}"/>
+    <input type="hidden" class="qor-seo-field" name="{{.InputName}}" />
+  </div>
 </div>

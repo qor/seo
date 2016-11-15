@@ -1,7 +1,7 @@
 {{$resource := .Result.SettingResource}}
 {{$seoGlobalSetting := seoGlobalSetting}}
 
-<div class="qor-page__body qor-page__col-2">
+<div class="qor-page__body qor-page__col-2 clearfix qor-seo__index">
   {{render "shared/flashes"}}
   {{render "shared/errors"}}
 
@@ -27,7 +27,7 @@
   </div>
 
   <div class="qor-page__col-right">
-    <div class="qor-form-container qor-seo" data-toggle="qor.seo" data-global-setting="true">
+    <div class="qor-form-container qor-seo" data-toggle="qor.seo">
       <form class="qor-form" action="{{seo_url_for $seoGlobalSetting}}" method="POST" enctype="multipart/form-data">
         <input name="_method" value="PUT" type="hidden">
         {{render_form (seoGlobalSettingValue $seoGlobalSetting.GetGlobalSetting) seoGlobalSettingMetas}}
