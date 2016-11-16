@@ -216,6 +216,11 @@ func (seoCollection SeoCollection) Render(name string, objects ...interface{}) t
 	globalSetting := seoCollection.SettingResource.NewStruct()
 	db.Where("name = ?", name).Find(globalSetting)
 	seo := seoCollection.GetSeo(name)
+	if seo == nil {
+		utils.ExitWithMsg(fmt.Printf("SEO: Can't find seo with name %v", name))
+		return ""
+	}
+
 	if setting != nil && setting.EnabledCustomize {
 		title = setting.Title
 		description = setting.Description
@@ -225,7 +230,13 @@ func (seoCollection SeoCollection) Render(name string, objects ...interface{}) t
 		description = globalSetting.(QorSeoSettingInterface).GetDescription()
 		keywords = globalSetting.(QorSeoSettingInterface).GetKeywords()
 	}
-	tagValues := seo.Context(objects...)
+
+	var tagValues map[string]string
+	if seo.Context != nil {
+		tagValues = seo.Context(objects...)
+	} else {
+		tagValues = make(map[string]string)
+	}
 	s := seoCollection.SettingResource.NewStruct()
 	db.Where("name = ?", "QorSeoGlobalSettings").First(s)
 	for k, v := range s.(QorSeoSettingInterface).GetGlobalSetting() {
