@@ -58,6 +58,8 @@ func TestRender(t *testing.T) {
 		RenderTestCase{"Qor", seo.Setting{Title: "", Description: "", Keywords: ""}, nil, 123, `<title></title><meta name="description" content=""><meta name="keywords" content=""/>`},
 		// Seo setting have value but variables are emptry
 		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{SiteName}}", Keywords: "{{SiteName}}"}, "", "", `<title>Qor</title><meta name="description" content="Qor"><meta name="keywords" content="Qor"/>`},
+		// Seo setting change Site Name
+		RenderTestCase{"ThePlant Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{SiteName}}", Keywords: "{{SiteName}}"}, "", "", `<title>ThePlant Qor</title><meta name="description" content="ThePlant Qor"><meta name="keywords" content="ThePlant Qor"/>`},
 		// Seo setting have value and variables are present
 		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}}", Description: "{{URLTitle}}", Keywords: "{{URLTitle}}"}, "Clothing", "/clothing", `<title>Qor Clothing</title><meta name="description" content="/clothing"><meta name="keywords" content="/clothing"/>`},
 		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}} {{Name}}", Description: "{{URLTitle}} {{URLTitle}}", Keywords: "{{URLTitle}} {{URLTitle}}"}, "Clothing", "/clothing", `<title>Qor Clothing Clothing</title><meta name="description" content="/clothing /clothing"><meta name="keywords" content="/clothing /clothing"/>`},
@@ -67,7 +69,8 @@ func TestRender(t *testing.T) {
 	)
 	i := 1
 	for _, testCase := range testCases {
-		createSetting(testCase.SiteName, testCase.SeoSetting)
+		createGlobalSetting(testCase.SiteName)
+		createPageSetting(testCase.SeoSetting)
 		metatHTML := string(seoCollection.Render("CategoryPage", testCase.CategoryName, testCase.CategoryURLTitle))
 		metatHTML = strings.Replace(metatHTML, "\n", "", -1)
 		if string(metatHTML) == testCase.Result {
@@ -126,19 +129,21 @@ func setupSeoCollection() {
 	Admin.MountTo("/admin", http.NewServeMux())
 }
 
-func createSetting(siteName string, setting seo.Setting) {
+func createGlobalSetting(siteName string) {
 	globalSeoSetting := seo.QorSeoSetting{}
+	db.Where("name = ?", "QorSeoGlobalSettings").Find(&globalSeoSetting)
 	globalSetting := make(map[string]string)
 	globalSetting["SiteName"] = siteName
 	globalSeoSetting.Setting = seo.Setting{GlobalSetting: globalSetting}
 	globalSeoSetting.Name = "QorSeoGlobalSettings"
-	db.Where("name = ?", "QorSeoGlobalSettings").Find(&globalSeoSetting)
 	if db.NewRecord(globalSeoSetting) {
 		db.Create(&globalSeoSetting)
 	} else {
-		db.Update(&globalSeoSetting)
+		db.Save(&globalSeoSetting)
 	}
+}
 
+func createPageSetting(setting seo.Setting) {
 	seoSetting := seo.QorSeoSetting{}
 	db.Where("name = ?", "CategoryPage").First(&seoSetting)
 	seoSetting.Setting = setting
