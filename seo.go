@@ -32,17 +32,21 @@ type QorSeoSetting struct {
 	Name          string
 	Setting       Setting `gorm:"size:4294967295"`
 	seoCollection *SeoCollection
+	IsGlobal      bool
 }
 
 type QorSeoSettingInterface interface {
 	GetName() string
-	SetName(name string)
+	SetName(string)
+	GetGlobalSetting() map[string]string
+	SetGlobalSetting(map[string]string)
+	GetSeoType() string
+	SetSeoType(string)
+	GetIsGlobal() bool
+	SetIsGlobal(bool)
 	GetTitle() string
 	GetDescription() string
 	GetKeywords() string
-	GetGlobalSetting() map[string]string
-	SetGlobalSetting(map[string]string)
-	SetSeoType(t string)
 }
 
 // Setting could be used to field type for SEO Settings
@@ -79,6 +83,30 @@ func (s *QorSeoSetting) SetName(name string) {
 	s.Name = name
 }
 
+func (s QorSeoSetting) GetSeoType() string {
+	return s.Setting.Type
+}
+
+func (s *QorSeoSetting) SetSeoType(t string) {
+	s.Setting.Type = t
+}
+
+func (s QorSeoSetting) GetIsGlobal() bool {
+	return s.IsGlobal
+}
+
+func (s *QorSeoSetting) SetIsGlobal(isGlobal bool) {
+	s.IsGlobal = isGlobal
+}
+
+func (s QorSeoSetting) GetGlobalSetting() map[string]string {
+	return s.Setting.GlobalSetting
+}
+
+func (s *QorSeoSetting) SetGlobalSetting(globalSetting map[string]string) {
+	s.Setting.GlobalSetting = globalSetting
+}
+
 func (s QorSeoSetting) GetTitle() string {
 	return s.Setting.Title
 }
@@ -89,18 +117,6 @@ func (s QorSeoSetting) GetDescription() string {
 
 func (s QorSeoSetting) GetKeywords() string {
 	return s.Setting.Keywords
-}
-
-func (s *QorSeoSetting) SetSeoType(t string) {
-	s.Setting.Type = t
-}
-
-func (s QorSeoSetting) GetGlobalSetting() map[string]string {
-	return s.Setting.GlobalSetting
-}
-
-func (s *QorSeoSetting) SetGlobalSetting(globalSetting map[string]string) {
-	s.Setting.GlobalSetting = globalSetting
 }
 
 func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer) {
@@ -151,10 +167,11 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 		})
 		Admin.RegisterFuncMap("seoGlobalSetting", func() interface{} {
 			s := seoCollection.SettingResource.NewStruct()
-			db.Where("name = ?", "QorSeoGlobalSettings").First(s)
+			db.Where("is_global = ?", true).First(s)
 			if db.NewRecord(s) {
 				s.(QorSeoSettingInterface).SetName("QorSeoGlobalSettings")
 				s.(QorSeoSettingInterface).SetSeoType("QorSeoGlobalSettings")
+				s.(QorSeoSettingInterface).SetIsGlobal(true)
 				db.Save(s)
 			}
 			return s
@@ -238,7 +255,7 @@ func (seoCollection SeoCollection) Render(name string, objects ...interface{}) t
 		tagValues = make(map[string]string)
 	}
 	s := seoCollection.SettingResource.NewStruct()
-	db.Where("name = ?", "QorSeoGlobalSettings").First(s)
+	db.Where("is_global = ?", true).First(s)
 	for k, v := range s.(QorSeoSettingInterface).GetGlobalSetting() {
 		if tagValues[k] == "" {
 			tagValues[k] = v
