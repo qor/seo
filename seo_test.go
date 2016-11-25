@@ -34,13 +34,17 @@ type mircoDataInferface interface {
 	Render() template.HTML
 }
 
+type Category struct {
+	Name string
+	Seo  seo.Setting `seo:"type:CategoryPage"`
+}
+
 // Test Cases
 type RenderTestCase struct {
-	SiteName         string
-	SeoSetting       seo.Setting
-	CategoryName     interface{}
-	CategoryURLTitle interface{}
-	Result           string
+	SiteName   string
+	SeoSetting seo.Setting
+	Settings   []interface{}
+	Result     string
 }
 
 type MicroDataTestCase struct {
@@ -52,26 +56,31 @@ type MicroDataTestCase struct {
 // Runner
 func TestRender(t *testing.T) {
 	setupSeoCollection()
+	category := Category{Name: "Clothing", Seo: seo.Setting{Title: "Using Customize Title", EnabledCustomize: false}}
+	categoryWithSeo := Category{Name: "Clothing", Seo: seo.Setting{Title: "Using Customize Title", EnabledCustomize: true}}
 	var testCases []RenderTestCase
 	testCases = append(testCases,
 		// Seo setting are empty
-		RenderTestCase{"Qor", seo.Setting{Title: "", Description: "", Keywords: ""}, nil, 123, `<title></title><meta name="description" content=""><meta name="keywords" content=""/>`},
+		RenderTestCase{"Qor", seo.Setting{Title: "", Description: "", Keywords: ""}, []interface{}{nil, 123}, `<title></title><meta name="description" content=""><meta name="keywords" content=""/>`},
 		// Seo setting have value but variables are emptry
-		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{SiteName}}", Keywords: "{{SiteName}}"}, "", "", `<title>Qor</title><meta name="description" content="Qor"><meta name="keywords" content="Qor"/>`},
+		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{SiteName}}", Keywords: "{{SiteName}}"}, []interface{}{"", ""}, `<title>Qor</title><meta name="description" content="Qor"><meta name="keywords" content="Qor"/>`},
 		// Seo setting change Site Name
-		RenderTestCase{"ThePlant Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{SiteName}}", Keywords: "{{SiteName}}"}, "", "", `<title>ThePlant Qor</title><meta name="description" content="ThePlant Qor"><meta name="keywords" content="ThePlant Qor"/>`},
+		RenderTestCase{"ThePlant Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{SiteName}}", Keywords: "{{SiteName}}"}, []interface{}{"", ""}, `<title>ThePlant Qor</title><meta name="description" content="ThePlant Qor"><meta name="keywords" content="ThePlant Qor"/>`},
 		// Seo setting have value and variables are present
-		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}}", Description: "{{URLTitle}}", Keywords: "{{URLTitle}}"}, "Clothing", "/clothing", `<title>Qor Clothing</title><meta name="description" content="/clothing"><meta name="keywords" content="/clothing"/>`},
-		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}} {{Name}}", Description: "{{URLTitle}} {{URLTitle}}", Keywords: "{{URLTitle}} {{URLTitle}}"}, "Clothing", "/clothing", `<title>Qor Clothing Clothing</title><meta name="description" content="/clothing /clothing"><meta name="keywords" content="/clothing /clothing"/>`},
-		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}} {{URLTitle}}", Description: "{{SiteName}} {{Name}} {{URLTitle}}", Keywords: "{{SiteName}} {{Name}} {{URLTitle}}"}, "", "", `<title>Qor  </title><meta name="description" content="Qor  "><meta name="keywords" content="Qor  "/>`},
+		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}}", Description: "{{URLTitle}}", Keywords: "{{URLTitle}}"}, []interface{}{"Clothing", "/clothing"}, `<title>Qor Clothing</title><meta name="description" content="/clothing"><meta name="keywords" content="/clothing"/>`},
+		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}} {{Name}}", Description: "{{URLTitle}} {{URLTitle}}", Keywords: "{{URLTitle}} {{URLTitle}}"}, []interface{}{"Clothing", "/clothing"}, `<title>Qor Clothing Clothing</title><meta name="description" content="/clothing /clothing"><meta name="keywords" content="/clothing /clothing"/>`},
+		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}} {{URLTitle}}", Description: "{{SiteName}} {{Name}} {{URLTitle}}", Keywords: "{{SiteName}} {{Name}} {{URLTitle}}"}, []interface{}{"", ""}, `<title>Qor  </title><meta name="description" content="Qor  "><meta name="keywords" content="Qor  "/>`},
 		// Using undefined variables
-		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name1}}", Description: "{{URLTitle1}}", Keywords: "{{URLTitle1}}"}, "Clothing", "/clothing", `<title>Qor </title><meta name="description" content=""><meta name="keywords" content=""/>`},
+		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name1}}", Description: "{{URLTitle1}}", Keywords: "{{URLTitle1}}"}, []interface{}{"Clothing", "/clothing"}, `<title>Qor </title><meta name="description" content=""><meta name="keywords" content=""/>`},
+		// Using Resource's seo
+		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{URLTitle}}", Keywords: "{{URLTitle}}"}, []interface{}{category}, `<title>Qor</title><meta name="description" content=""><meta name="keywords" content=""/>`},
+		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{URLTitle}}", Keywords: "{{URLTitle}}"}, []interface{}{categoryWithSeo}, `<title>Using Customize Title</title><meta name="description" content=""><meta name="keywords" content=""/>`},
 	)
 	i := 1
 	for _, testCase := range testCases {
 		createGlobalSetting(testCase.SiteName)
 		createPageSetting(testCase.SeoSetting)
-		metatHTML := string(seoCollection.Render("CategoryPage", testCase.CategoryName, testCase.CategoryURLTitle))
+		metatHTML := string(seoCollection.Render("CategoryPage", testCase.Settings...))
 		metatHTML = strings.Replace(metatHTML, "\n", "", -1)
 		if string(metatHTML) == testCase.Result {
 			color.Green(fmt.Sprintf("Seo Render TestCase #%d: Success\n", i))
@@ -114,7 +123,9 @@ func setupSeoCollection() {
 		Context: func(objects ...interface{}) (context map[string]string) {
 			context = make(map[string]string)
 			if len(objects) > 0 && objects[0] != nil {
-				context["Name"] = objects[0].(string)
+				if v, ok := objects[0].(string); ok {
+					context["Name"] = v
+				}
 			}
 			if len(objects) > 1 && objects[1] != nil {
 				if v, ok := objects[1].(string); ok {
