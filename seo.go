@@ -152,6 +152,9 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 			}
 			return settings
 		})
+		Admin.RegisterFuncMap("seoSettingMetas", func() []*admin.Section {
+			return seoCollection.SettingResource.NewAttrs("ID", "Name", "Setting")
+		})
 		Admin.RegisterFuncMap("seoGlobalSettingValue", func(setting map[string]string) interface{} {
 			value := reflect.Indirect(reflect.ValueOf(seoCollection.globalSetting))
 			for i := 0; i < value.NumField(); i++ {
