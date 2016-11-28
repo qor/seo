@@ -138,76 +138,7 @@ func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer)
 		router.Get(res.ToParam(), controller.Index)
 		router.Put(fmt.Sprintf("%v/%v", res.ToParam(), seoCollection.SettingResource.ParamIDName()), controller.Update)
 
-		Admin.RegisterFuncMap("seo_sections", func() []interface{} {
-			settings := []interface{}{}
-			for _, seo := range seoCollection.registeredSeo {
-				s := seoCollection.SettingResource.NewStruct()
-				db.Where("name = ?", seo.Name).First(s)
-				if db.NewRecord(s) {
-					s.(QorSeoSettingInterface).SetName(seo.Name)
-					s.(QorSeoSettingInterface).SetSeoType(seo.Name)
-					db.Save(s)
-				}
-				settings = append(settings, s)
-			}
-			return settings
-		})
-		Admin.RegisterFuncMap("seo_setting_metas", func() []*admin.Section {
-			return seoCollection.SettingResource.NewAttrs("ID", "Name", "Setting")
-		})
-		Admin.RegisterFuncMap("seo_global_setting_value", func(setting map[string]string) interface{} {
-			value := reflect.Indirect(reflect.ValueOf(seoCollection.globalSetting))
-			for i := 0; i < value.NumField(); i++ {
-				fieldName := value.Type().Field(i).Name
-				if setting[fieldName] != "" {
-					value.Field(i).SetString(setting[fieldName])
-				}
-			}
-			return value.Interface()
-		})
-		Admin.RegisterFuncMap("seo_global_setting_metas", func() []*admin.Section {
-			return globalSettingRes.NewAttrs()
-		})
-		Admin.RegisterFuncMap("seo_global_setting", func() interface{} {
-			s := seoCollection.SettingResource.NewStruct()
-			db.Where("is_global = ?", true).First(s)
-			if db.NewRecord(s) {
-				s.(QorSeoSettingInterface).SetName("QorSeoGlobalSettings")
-				s.(QorSeoSettingInterface).SetSeoType("QorSeoGlobalSettings")
-				s.(QorSeoSettingInterface).SetIsGlobal(true)
-				db.Save(s)
-			}
-			return s
-		})
-		Admin.RegisterFuncMap("seo_tags_by_type", func(name string) (tags []string) {
-			seo := seoCollection.GetSeo(name)
-			if seo == nil {
-				return []string{}
-			}
-			value := reflect.Indirect(reflect.ValueOf(seoCollection.globalSetting))
-			for i := 0; i < value.NumField(); i++ {
-				tags = append(tags, value.Type().Field(i).Name)
-			}
-			for _, s := range seoCollection.GetSeo(name).Settings {
-				tags = append(tags, s)
-			}
-			return tags
-		})
-		Admin.RegisterFuncMap("seo_append_default_value", func(name string, value interface{}) interface{} {
-			globalInteface := seoCollection.SettingResource.NewStruct()
-			db.Where("name = ?", name).Find(globalInteface)
-			globalSetting := globalInteface.(QorSeoSettingInterface)
-			setting := value.(Setting)
-			if !setting.EnabledCustomize && setting.Title == "" && setting.Description == "" && setting.Keywords == "" {
-				setting.Title = globalSetting.GetTitle()
-				setting.Description = globalSetting.GetDescription()
-				setting.Keywords = globalSetting.GetKeywords()
-			}
-			return setting
-		})
-		Admin.RegisterFuncMap("seo_url_for", func(value interface{}) string {
-			return fmt.Sprintf("%v/%v/%v", Admin.GetRouter().Prefix, res.ToParam(), db.NewScope(value).PrimaryKeyValue())
-		})
+		seoCollection.registerFuncMap(db, Admin, res, globalSettingRes)
 	}
 }
 
