@@ -2,7 +2,7 @@
 {{$labelName := .Meta.Label}}
 {{$rawValue := raw_value_of .ResourceValue .Meta}}
 {{$seoName := (seoType $rawValue .Meta)}}
-{{$value := seoAppendDefaultValue $seoName $rawValue}}
+{{$value := seo_append_default_value $seoName $rawValue}}
 
 <div class="qor-seo qor-field" data-toggle="qor.seo">
 
@@ -18,7 +18,7 @@
 
   <div class="qor-seo__settings" {{if not ($value.EnabledCustomize)}}style="display: none;"{{end}}>
     <ul class="qor-seo-tags clearfix" data-input-id={{.InputId}}>
-      {{range seoTagsByType $seoName }}
+      {{range seo_tags_by_type $seoName }}
         <li class="qor-seo-tag" data-tag-value="{{.}}"><i class="material-icons">add_box</i><span>{{.}}</span></li>
       {{end}}
     </ul>
