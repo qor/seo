@@ -1,4 +1,4 @@
-package seo_test
+package seo
 
 import (
 	"fmt"
@@ -13,15 +13,15 @@ import (
 	"github.com/qor/admin"
 	"github.com/qor/qor"
 	"github.com/qor/qor/test/utils"
-	"github.com/qor/seo"
 )
 
 var db *gorm.DB
-var seoCollection *seo.SeoCollection
+var Admin *admin.Admin
+var seoCollection *SeoCollection
 
 func init() {
 	db = utils.TestDB()
-	db.AutoMigrate(&seo.QorSeoSetting{})
+	db.AutoMigrate(&QorSeoSetting{})
 }
 
 // Modal
@@ -36,13 +36,13 @@ type mircoDataInferface interface {
 
 type Category struct {
 	Name string
-	Seo  seo.Setting `seo:"type:CategoryPage"`
+	Seo  Setting `seo:"type:CategoryPage"`
 }
 
 // Test Cases
 type RenderTestCase struct {
 	SiteName   string
-	SeoSetting seo.Setting
+	SeoSetting Setting
 	Settings   []interface{}
 	Result     string
 }
@@ -56,25 +56,25 @@ type MicroDataTestCase struct {
 // Runner
 func TestRender(t *testing.T) {
 	setupSeoCollection()
-	category := Category{Name: "Clothing", Seo: seo.Setting{Title: "Using Customize Title", EnabledCustomize: false}}
-	categoryWithSeo := Category{Name: "Clothing", Seo: seo.Setting{Title: "Using Customize Title", EnabledCustomize: true}}
+	category := Category{Name: "Clothing", Seo: Setting{Title: "Using Customize Title", EnabledCustomize: false}}
+	categoryWithSeo := Category{Name: "Clothing", Seo: Setting{Title: "Using Customize Title", EnabledCustomize: true}}
 	var testCases []RenderTestCase
 	testCases = append(testCases,
 		// Seo setting are empty
-		RenderTestCase{"Qor", seo.Setting{Title: "", Description: "", Keywords: ""}, []interface{}{nil, 123}, `<title></title><meta name="description" content=""><meta name="keywords" content=""/>`},
+		RenderTestCase{"Qor", Setting{Title: "", Description: "", Keywords: ""}, []interface{}{nil, 123}, `<title></title><meta name="description" content=""><meta name="keywords" content=""/>`},
 		// Seo setting have value but variables are emptry
-		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{SiteName}}", Keywords: "{{SiteName}}"}, []interface{}{"", ""}, `<title>Qor</title><meta name="description" content="Qor"><meta name="keywords" content="Qor"/>`},
+		RenderTestCase{"Qor", Setting{Title: "{{SiteName}}", Description: "{{SiteName}}", Keywords: "{{SiteName}}"}, []interface{}{"", ""}, `<title>Qor</title><meta name="description" content="Qor"><meta name="keywords" content="Qor"/>`},
 		// Seo setting change Site Name
-		RenderTestCase{"ThePlant Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{SiteName}}", Keywords: "{{SiteName}}"}, []interface{}{"", ""}, `<title>ThePlant Qor</title><meta name="description" content="ThePlant Qor"><meta name="keywords" content="ThePlant Qor"/>`},
+		RenderTestCase{"ThePlant Qor", Setting{Title: "{{SiteName}}", Description: "{{SiteName}}", Keywords: "{{SiteName}}"}, []interface{}{"", ""}, `<title>ThePlant Qor</title><meta name="description" content="ThePlant Qor"><meta name="keywords" content="ThePlant Qor"/>`},
 		// Seo setting have value and variables are present
-		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}}", Description: "{{URLTitle}}", Keywords: "{{URLTitle}}"}, []interface{}{"Clothing", "/clothing"}, `<title>Qor Clothing</title><meta name="description" content="/clothing"><meta name="keywords" content="/clothing"/>`},
-		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}} {{Name}}", Description: "{{URLTitle}} {{URLTitle}}", Keywords: "{{URLTitle}} {{URLTitle}}"}, []interface{}{"Clothing", "/clothing"}, `<title>Qor Clothing Clothing</title><meta name="description" content="/clothing /clothing"><meta name="keywords" content="/clothing /clothing"/>`},
-		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name}} {{URLTitle}}", Description: "{{SiteName}} {{Name}} {{URLTitle}}", Keywords: "{{SiteName}} {{Name}} {{URLTitle}}"}, []interface{}{"", ""}, `<title>Qor  </title><meta name="description" content="Qor  "><meta name="keywords" content="Qor  "/>`},
+		RenderTestCase{"Qor", Setting{Title: "{{SiteName}} {{Name}}", Description: "{{URLTitle}}", Keywords: "{{URLTitle}}"}, []interface{}{"Clothing", "/clothing"}, `<title>Qor Clothing</title><meta name="description" content="/clothing"><meta name="keywords" content="/clothing"/>`},
+		RenderTestCase{"Qor", Setting{Title: "{{SiteName}} {{Name}} {{Name}}", Description: "{{URLTitle}} {{URLTitle}}", Keywords: "{{URLTitle}} {{URLTitle}}"}, []interface{}{"Clothing", "/clothing"}, `<title>Qor Clothing Clothing</title><meta name="description" content="/clothing /clothing"><meta name="keywords" content="/clothing /clothing"/>`},
+		RenderTestCase{"Qor", Setting{Title: "{{SiteName}} {{Name}} {{URLTitle}}", Description: "{{SiteName}} {{Name}} {{URLTitle}}", Keywords: "{{SiteName}} {{Name}} {{URLTitle}}"}, []interface{}{"", ""}, `<title>Qor  </title><meta name="description" content="Qor  "><meta name="keywords" content="Qor  "/>`},
 		// Using undefined variables
-		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}} {{Name1}}", Description: "{{URLTitle1}}", Keywords: "{{URLTitle1}}"}, []interface{}{"Clothing", "/clothing"}, `<title>Qor </title><meta name="description" content=""><meta name="keywords" content=""/>`},
+		RenderTestCase{"Qor", Setting{Title: "{{SiteName}} {{Name1}}", Description: "{{URLTitle1}}", Keywords: "{{URLTitle1}}"}, []interface{}{"Clothing", "/clothing"}, `<title>Qor </title><meta name="description" content=""><meta name="keywords" content=""/>`},
 		// Using Resource's seo
-		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{URLTitle}}", Keywords: "{{URLTitle}}"}, []interface{}{category}, `<title>Qor</title><meta name="description" content=""><meta name="keywords" content=""/>`},
-		RenderTestCase{"Qor", seo.Setting{Title: "{{SiteName}}", Description: "{{URLTitle}}", Keywords: "{{URLTitle}}"}, []interface{}{categoryWithSeo}, `<title>Using Customize Title</title><meta name="description" content=""><meta name="keywords" content=""/>`},
+		RenderTestCase{"Qor", Setting{Title: "{{SiteName}}", Description: "{{URLTitle}}", Keywords: "{{URLTitle}}"}, []interface{}{category}, `<title>Qor</title><meta name="description" content=""><meta name="keywords" content=""/>`},
+		RenderTestCase{"Qor", Setting{Title: "{{SiteName}}", Description: "{{URLTitle}}", Keywords: "{{URLTitle}}"}, []interface{}{categoryWithSeo}, `<title>Using Customize Title</title><meta name="description" content=""><meta name="keywords" content=""/>`},
 	)
 	i := 1
 	for _, testCase := range testCases {
@@ -91,13 +91,62 @@ func TestRender(t *testing.T) {
 	}
 }
 
+func TestSeoSections(t *testing.T) {
+	setupSeoCollection()
+	var count int
+	db.Model(QorSeoSetting{}).Count(&count)
+	if count != 0 {
+		t.Errorf(color.RedString("\nSeoSections TestCase #1: should get empty settings"))
+	}
+
+	seoCollection.seoSections(db)()
+	db.Model(QorSeoSetting{}).Count(&count)
+	if count != 2 {
+		t.Errorf(color.RedString("\nSeoSections TestCase #2: should get two settings"))
+	}
+
+	var settings []QorSeoSetting
+	settingNames := []string{"DefaultPage", "CategoryPage"}
+	db.Model(QorSeoSetting{}).Find(&settings)
+	for i, setting := range settings {
+		if setting.Name != settingNames[i] {
+			t.Errorf(color.RedString(fmt.Sprintf("\nSeoSections TestCase #%v: should has setting `%v`", 3+i, settingNames[i])))
+		}
+	}
+}
+
+func TestSeoGlobalSetting(t *testing.T) {
+	setupSeoCollection()
+	var count int
+	db.Model(QorSeoSetting{}).Count(&count)
+	if count != 0 {
+		t.Errorf(color.RedString("\nSeoGlobalSetting TestCase #1: global setting should be empty"))
+	}
+
+	seoCollection.seoGlobalSetting(db)()
+	var settings []QorSeoSetting
+	db.Find(&settings)
+	if len(settings) != 1 || !settings[0].IsGlobal {
+		t.Errorf(color.RedString("\nSeoGlobalSetting TestCase #2: global setting should be present"))
+	}
+}
+
+func TestSeoTagsByType(t *testing.T) {
+	setupSeoCollection()
+	validTags := seoCollection.seoTagsByType("CategoryPage")
+	tags := []string{"SiteName", "BrandName", "Name", "URLTitle"}
+	if strings.Join(validTags, ",") != strings.Join(tags, ",") {
+		t.Errorf(color.RedString("\nSeoTagsByType TestCase: seo's tags should be %v", tags))
+	}
+}
+
 func TestMicrodata(t *testing.T) {
 	var testCases []MicroDataTestCase
 	testCases = append(testCases,
-		MicroDataTestCase{"Product", seo.MicroProduct{Name: ""}, `<span itemprop="name"></span>`},
-		MicroDataTestCase{"Product", seo.MicroProduct{Name: "Polo"}, `<span itemprop="name">Polo</span>`},
-		MicroDataTestCase{"Search", seo.MicroSearch{Target: "http://www.example.com/q={keyword}"}, `http:\/\/www.example.com\/q={keyword}`},
-		MicroDataTestCase{"Contact", seo.MicroContact{Telephone: "86-401-302-313"}, `86-401-302-313`},
+		MicroDataTestCase{"Product", MicroProduct{Name: ""}, `<span itemprop="name"></span>`},
+		MicroDataTestCase{"Product", MicroProduct{Name: "Polo"}, `<span itemprop="name">Polo</span>`},
+		MicroDataTestCase{"Search", MicroSearch{Target: "http://www.example.com/q={keyword}"}, `http:\/\/www.example.com\/q={keyword}`},
+		MicroDataTestCase{"Contact", MicroContact{Telephone: "86-401-302-313"}, `86-401-302-313`},
 	)
 	i := 1
 	for _, microDataTestCase := range testCases {
@@ -112,12 +161,16 @@ func TestMicrodata(t *testing.T) {
 }
 
 func setupSeoCollection() {
-	seoCollection = seo.New()
+	if err := db.DropTableIfExists(&QorSeoSetting{}).Error; err != nil {
+		panic(err)
+	}
+	db.AutoMigrate(&QorSeoSetting{})
+	seoCollection = New()
 	seoCollection.RegisterGlobalSetting(&SeoGlobalSetting{SiteName: "Qor SEO", BrandName: "Qor"})
-	seoCollection.RegisterSeo(&seo.Seo{
-		Name: "Default Page",
+	seoCollection.RegisterSeo(&Seo{
+		Name: "DefaultPage",
 	})
-	seoCollection.RegisterSeo(&seo.Seo{
+	seoCollection.RegisterSeo(&Seo{
 		Name:     "CategoryPage",
 		Settings: []string{"Name", "URLTitle"},
 		Context: func(objects ...interface{}) (context map[string]string) {
@@ -135,18 +188,19 @@ func setupSeoCollection() {
 			return context
 		},
 	})
-	Admin := admin.New(&qor.Config{DB: db})
+	Admin = admin.New(&qor.Config{DB: db})
 	Admin.AddResource(seoCollection, &admin.Config{Name: "SEO Setting", Menu: []string{"Site Management"}, Singleton: true})
 	Admin.MountTo("/admin", http.NewServeMux())
 }
 
 func createGlobalSetting(siteName string) {
-	globalSeoSetting := seo.QorSeoSetting{}
+	globalSeoSetting := QorSeoSetting{}
 	db.Where("name = ?", "QorSeoGlobalSettings").Find(&globalSeoSetting)
 	globalSetting := make(map[string]string)
 	globalSetting["SiteName"] = siteName
-	globalSeoSetting.Setting = seo.Setting{GlobalSetting: globalSetting}
+	globalSeoSetting.Setting = Setting{GlobalSetting: globalSetting}
 	globalSeoSetting.Name = "QorSeoGlobalSettings"
+	globalSeoSetting.IsGlobal = true
 	if db.NewRecord(globalSeoSetting) {
 		db.Create(&globalSeoSetting)
 	} else {
@@ -154,10 +208,11 @@ func createGlobalSetting(siteName string) {
 	}
 }
 
-func createPageSetting(setting seo.Setting) {
-	seoSetting := seo.QorSeoSetting{}
+func createPageSetting(setting Setting) {
+	seoSetting := QorSeoSetting{}
 	db.Where("name = ?", "CategoryPage").First(&seoSetting)
 	seoSetting.Setting = setting
+	seoSetting.Name = "CategoryPage"
 	if db.NewRecord(seoSetting) {
 		db.Create(&seoSetting)
 	} else {
