@@ -53,6 +53,16 @@ type MicroDataTestCase struct {
 	HasTag        string
 }
 
+type SeoAppendDefaultValueTestCase struct {
+	CatTitle            string
+	CatDescription      string
+	CatKeywords         string
+	CatEnabledCustomize bool
+	ExpectTitle         string
+	ExpectDescription   string
+	ExpectKeywords      string
+}
+
 // Runner
 func TestRender(t *testing.T) {
 	setupSeoCollection()
@@ -79,7 +89,7 @@ func TestRender(t *testing.T) {
 	i := 1
 	for _, testCase := range testCases {
 		createGlobalSetting(testCase.SiteName)
-		createPageSetting(testCase.SeoSetting)
+		createCategoryPageSetting(testCase.SeoSetting)
 		metatHTML := string(seoCollection.Render("CategoryPage", testCase.Settings...))
 		metatHTML = strings.Replace(metatHTML, "\n", "", -1)
 		if string(metatHTML) == testCase.Result {
@@ -131,6 +141,51 @@ func TestSeoGlobalSetting(t *testing.T) {
 	}
 }
 
+func TestSeoGlobalSettingValue(t *testing.T) {
+	setupSeoCollection()
+	globalSettingValues := make(map[string]string)
+	globalSettingValues["SiteName"] = "New Site Name"
+	globalSettingValues["BrandName"] = "New Brand Name"
+	globalSetting := seoCollection.seoGlobalSettingValue(globalSettingValues)
+	if globalSetting.(SeoGlobalSetting).SiteName != "New Site Name" {
+		t.Errorf(color.RedString("\nSeoGlobalSettingValue TestCase #1: value doesn't be set"))
+	}
+	if globalSetting.(SeoGlobalSetting).BrandName != "New Brand Name" {
+		t.Errorf(color.RedString("\nSeoGlobalSettingValue TestCase #2: value doesn't be set"))
+	}
+}
+
+func TestSeoAppendDefaultValue(t *testing.T) {
+	setupSeoCollection()
+	createCategoryPageSetting(Setting{Title: "GT", Description: "GD", Keywords: "GK"})
+	testCases := []SeoAppendDefaultValueTestCase{
+		{CatTitle: "T", CatDescription: "D", CatKeywords: "K", CatEnabledCustomize: true, ExpectTitle: "T", ExpectDescription: "D", ExpectKeywords: "K"},
+		{CatTitle: "T", CatDescription: "D", CatKeywords: "K", CatEnabledCustomize: false, ExpectTitle: "T", ExpectDescription: "D", ExpectKeywords: "K"},
+		{CatTitle: "", CatDescription: "", CatKeywords: "", CatEnabledCustomize: true, ExpectTitle: "", ExpectDescription: "", ExpectKeywords: ""},
+		{CatTitle: "", CatDescription: "", CatKeywords: "", CatEnabledCustomize: false, ExpectTitle: "GT", ExpectDescription: "GD", ExpectKeywords: "GK"},
+	}
+	for i, testCase := range testCases {
+		category := Category{Seo: Setting{Title: testCase.CatTitle, Description: testCase.CatDescription, Keywords: testCase.CatKeywords, EnabledCustomize: testCase.CatEnabledCustomize}}
+		setting := seoCollection.seoAppendDefaultValue(db)("CategoryPage", category.Seo).(Setting)
+		var hasError bool
+		if setting.Title != testCase.ExpectTitle {
+			hasError = true
+			t.Errorf(color.RedString("\nSeoAppendDefaultValue TestCase #%v: title should be equal %v, but got %v", i+1, testCase.ExpectTitle, setting.Title))
+		}
+		if setting.Description != testCase.ExpectDescription {
+			hasError = true
+			t.Errorf(color.RedString("\nSeoAppendDefaultValue TestCase #%v: description should be equal %v, but got %v", i+1, testCase.ExpectDescription, setting.Description))
+		}
+		if setting.Keywords != testCase.ExpectKeywords {
+			hasError = true
+			t.Errorf(color.RedString("\nSeoAppendDefaultValue TestCase #%v: keywords should be equal %v, but go %v", i+1, testCase.ExpectKeywords, setting.Keywords))
+		}
+		if !hasError {
+			color.Green(fmt.Sprintf("SeoAppendDefaultValue TestCase #%v: Success", i+1))
+		}
+	}
+}
+
 func TestSeoTagsByType(t *testing.T) {
 	setupSeoCollection()
 	validTags := seoCollection.seoTagsByType("CategoryPage")
@@ -160,6 +215,7 @@ func TestMicrodata(t *testing.T) {
 	}
 }
 
+// Created related methods
 func setupSeoCollection() {
 	if err := db.DropTableIfExists(&QorSeoSetting{}).Error; err != nil {
 		panic(err)
@@ -208,7 +264,7 @@ func createGlobalSetting(siteName string) {
 	}
 }
 
-func createPageSetting(setting Setting) {
+func createCategoryPageSetting(setting Setting) {
 	seoSetting := QorSeoSetting{}
 	db.Where("name = ?", "CategoryPage").First(&seoSetting)
 	seoSetting.Setting = setting

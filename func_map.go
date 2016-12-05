@@ -30,24 +30,6 @@ func (seoCollection *SeoCollection) seoSettingMetas() []*admin.Section {
 	return seoCollection.SettingResource.NewAttrs("ID", "Name", "Setting")
 }
 
-func (seoCollection *SeoCollection) seoGlobalSettingValue(setting map[string]string) interface{} {
-	value := reflect.Indirect(reflect.ValueOf(seoCollection.globalSetting))
-	for i := 0; i < value.NumField(); i++ {
-		fieldName := value.Type().Field(i).Name
-		if setting[fieldName] != "" {
-			value.Field(i).SetString(setting[fieldName])
-		}
-	}
-	return value.Interface()
-
-}
-
-func (seoCollection *SeoCollection) seoGlobalSettingMetas(globalSettingRes *admin.Resource) func() []*admin.Section {
-	return func() []*admin.Section {
-		return globalSettingRes.NewAttrs()
-	}
-}
-
 func (seoCollection *SeoCollection) seoGlobalSetting(db *gorm.DB) func() interface{} {
 	return func() interface{} {
 		s := seoCollection.SettingResource.NewStruct()
@@ -59,6 +41,23 @@ func (seoCollection *SeoCollection) seoGlobalSetting(db *gorm.DB) func() interfa
 			db.Save(s)
 		}
 		return s
+	}
+}
+
+func (seoCollection *SeoCollection) seoGlobalSettingValue(setting map[string]string) interface{} {
+	value := reflect.Indirect(reflect.ValueOf(seoCollection.globalSetting))
+	for i := 0; i < value.NumField(); i++ {
+		fieldName := value.Type().Field(i).Name
+		if setting[fieldName] != "" {
+			value.Field(i).SetString(setting[fieldName])
+		}
+	}
+	return value.Interface()
+}
+
+func (seoCollection *SeoCollection) seoGlobalSettingMetas(globalSettingRes *admin.Resource) func() []*admin.Section {
+	return func() []*admin.Section {
+		return globalSettingRes.NewAttrs()
 	}
 }
 
@@ -77,12 +76,12 @@ func (seoCollection *SeoCollection) seoTagsByType(name string) (tags []string) {
 	return tags
 }
 
-func (seoCollection *SeoCollection) seoAppendDefaultValue(db *gorm.DB) func(name string, value interface{}) interface{} {
-	return func(name string, value interface{}) interface{} {
+func (seoCollection *SeoCollection) seoAppendDefaultValue(db *gorm.DB) func(seoName string, resourceSeoValue interface{}) interface{} {
+	return func(seoName string, resourceSeoValue interface{}) interface{} {
 		globalInteface := seoCollection.SettingResource.NewStruct()
-		db.Where("name = ?", name).Find(globalInteface)
+		db.Where("name = ?", seoName).Find(globalInteface)
 		globalSetting := globalInteface.(QorSeoSettingInterface)
-		setting := value.(Setting)
+		setting := resourceSeoValue.(Setting)
 		if !setting.EnabledCustomize && setting.Title == "" && setting.Description == "" && setting.Keywords == "" {
 			setting.Title = globalSetting.GetTitle()
 			setting.Description = globalSetting.GetDescription()
