@@ -97,7 +97,7 @@ func TestRender(t *testing.T) {
 		} else {
 			t.Errorf(color.RedString(fmt.Sprintf("\nSeo Render TestCase #%d: Failure Result:%s\n", i, string(metatHTML))))
 		}
-		i += 1
+		i++
 	}
 }
 
@@ -211,7 +211,7 @@ func TestMicrodata(t *testing.T) {
 		} else {
 			t.Errorf(color.RedString(fmt.Sprintf("\nSeo Micro TestCase #%d: Failure Result:%s\n", i, string(tagHTML))))
 		}
-		i += 1
+		i++
 	}
 }
 

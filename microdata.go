@@ -64,10 +64,8 @@ func renderTemplate(content string, obj interface{}) template.HTML {
 		var results bytes.Buffer
 		if err = tmpl.Execute(&results, obj); err == nil {
 			return template.HTML(results.String())
-		} else {
-			return template.HTML(err.Error())
 		}
-	} else {
 		return template.HTML(err.Error())
 	}
+	return template.HTML(err.Error())
 }

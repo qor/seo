@@ -34,7 +34,7 @@ func (sc seoController) Update(context *admin.Context) {
 	seoSettingInterface := result.(QorSeoSettingInterface)
 	if seoSettingInterface.GetName() == "QorSeoGlobalSettings" {
 		globalSetting := make(map[string]string)
-		for fieldWithPrefix, _ := range context.Request.Form {
+		for fieldWithPrefix := range context.Request.Form {
 			if strings.HasPrefix(fieldWithPrefix, "QorResource") {
 				field := strings.Replace(fieldWithPrefix, "QorResource.", "", -1)
 				globalSetting[field] = context.Request.Form.Get(fieldWithPrefix)

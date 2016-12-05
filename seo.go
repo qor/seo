@@ -15,18 +15,21 @@ import (
 	"github.com/qor/qor/utils"
 )
 
+// SeoCollection will hold registered seo configures and global setting definition and other configures
 type SeoCollection struct {
 	SettingResource *admin.Resource
 	registeredSeo   []*Seo
 	globalSetting   interface{}
 }
 
+// Seo represents a seo object for a page
 type Seo struct {
 	Name     string
 	Settings []string
 	Context  func(...interface{}) map[string]string
 }
 
+// QorSeoSetting default seo model
 type QorSeoSetting struct {
 	gorm.Model
 	Name          string
@@ -35,6 +38,17 @@ type QorSeoSetting struct {
 	IsGlobal      bool
 }
 
+// Setting defined meta's attributes
+type Setting struct {
+	Title            string
+	Description      string
+	Keywords         string
+	Type             string
+	EnabledCustomize bool
+	GlobalSetting    map[string]string
+}
+
+// QorSeoSettingInterface support customize Seo model
 type QorSeoSettingInterface interface {
 	GetName() string
 	SetName(string)
@@ -49,76 +63,81 @@ type QorSeoSettingInterface interface {
 	GetKeywords() string
 }
 
-// Setting could be used to field type for SEO Settings
-type Setting struct {
-	Title            string
-	Description      string
-	Keywords         string
-	Type             string
-	EnabledCustomize bool
-	GlobalSetting    map[string]string
-}
-
 func init() {
 	admin.RegisterViewPath("github.com/qor/seo/views")
 }
 
+// New initialize a SeoCollection instance
 func New() *SeoCollection {
 	return &SeoCollection{}
 }
 
+// RegisterGlobalSetting register global setting and will represents as 'Site-wide Settings' part in admin
 func (seoCollection *SeoCollection) RegisterGlobalSetting(s interface{}) {
 	seoCollection.globalSetting = s
 }
 
+// RegisterSeo register a seo
 func (seoCollection *SeoCollection) RegisterSeo(seo *Seo) {
 	seoCollection.registeredSeo = append(seoCollection.registeredSeo, seo)
 }
 
+// GetName get QorSeoSetting's name
 func (s QorSeoSetting) GetName() string {
 	return s.Name
 }
 
+// SetName set QorSeoSetting's name
 func (s *QorSeoSetting) SetName(name string) {
 	s.Name = name
 }
 
+// GetSeoType get QorSeoSetting's type
 func (s QorSeoSetting) GetSeoType() string {
 	return s.Setting.Type
 }
 
+// SetSeoType set QorSeoSetting's type
 func (s *QorSeoSetting) SetSeoType(t string) {
 	s.Setting.Type = t
 }
 
+// GetIsGlobal get QorSeoSetting's isGlobal
 func (s QorSeoSetting) GetIsGlobal() bool {
 	return s.IsGlobal
 }
 
+// SetIsGlobal set QorSeoSetting's isGlobal
 func (s *QorSeoSetting) SetIsGlobal(isGlobal bool) {
 	s.IsGlobal = isGlobal
 }
 
+// GetGlobalSetting get QorSeoSetting's globalSetting
 func (s QorSeoSetting) GetGlobalSetting() map[string]string {
 	return s.Setting.GlobalSetting
 }
 
+// SetGlobalSetting set QorSeoSetting's globalSetting
 func (s *QorSeoSetting) SetGlobalSetting(globalSetting map[string]string) {
 	s.Setting.GlobalSetting = globalSetting
 }
 
+// GetTitle get Setting's title
 func (s QorSeoSetting) GetTitle() string {
 	return s.Setting.Title
 }
 
+// GetDescription get Setting's description
 func (s QorSeoSetting) GetDescription() string {
 	return s.Setting.Description
 }
 
+// GetKeywords get Setting's keywords
 func (s QorSeoSetting) GetKeywords() string {
 	return s.Setting.Keywords
 }
 
+// ConfigureQorResource configure seoCollection for qor admin
 func (seoCollection *SeoCollection) ConfigureQorResource(res resource.Resourcer) {
 	if res, ok := res.(*admin.Resource); ok {
 		Admin := res.GetAdmin()
@@ -201,6 +220,7 @@ func (seoCollection SeoCollection) Render(name string, objects ...interface{}) t
 	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", title, description, keywords))
 }
 
+// GetSeo get a Seo by name
 func (seoCollection *SeoCollection) GetSeo(name string) *Seo {
 	for _, s := range seoCollection.registeredSeo {
 		if s.Name == name {

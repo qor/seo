@@ -91,7 +91,7 @@ func (seoCollection *SeoCollection) seoAppendDefaultValue(db *gorm.DB) func(seoN
 	}
 }
 
-func (seoCollection *SeoCollection) seoUrlFor(db *gorm.DB, a *admin.Admin, res *admin.Resource) func(value interface{}) string {
+func (seoCollection *SeoCollection) seoURLFor(db *gorm.DB, a *admin.Admin, res *admin.Resource) func(value interface{}) string {
 	return func(value interface{}) string {
 		return fmt.Sprintf("%v/%v/%v", a.GetRouter().Prefix, res.ToParam(), db.NewScope(value).PrimaryKeyValue())
 	}
@@ -106,7 +106,7 @@ func (seoCollection *SeoCollection) registerFuncMap(db *gorm.DB, a *admin.Admin,
 		"seo_global_setting":       seoCollection.seoGlobalSetting(db),
 		"seo_tags_by_type":         seoCollection.seoTagsByType,
 		"seo_append_default_value": seoCollection.seoAppendDefaultValue(db),
-		"seo_url_for":              seoCollection.seoUrlFor(db, a, res),
+		"seo_url_for":              seoCollection.seoURLFor(db, a, res),
 	}
 
 	for key, value := range funcMaps {
