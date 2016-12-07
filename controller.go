@@ -10,21 +10,21 @@ import (
 )
 
 type seoController struct {
-	SeoCollection *SeoCollection
-	MainResource  *admin.Resource
+	Collection   *Collection
+	MainResource *admin.Resource
 }
 
 func (sc seoController) Index(context *admin.Context) {
-	context = context.NewResourceContext(sc.SeoCollection.SettingResource)
+	context = context.NewResourceContext(sc.Collection.SettingResource)
 	context.Execute("index", struct {
 		SettingResource *admin.Resource
 	}{
-		SettingResource: sc.SeoCollection.SettingResource,
+		SettingResource: sc.Collection.SettingResource,
 	})
 }
 
 func (sc seoController) Update(context *admin.Context) {
-	context = context.NewResourceContext(sc.SeoCollection.SettingResource)
+	context = context.NewResourceContext(sc.Collection.SettingResource)
 	var result interface{}
 	var err error
 

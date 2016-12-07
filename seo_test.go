@@ -17,7 +17,7 @@ import (
 
 var db *gorm.DB
 var Admin *admin.Admin
-var seoCollection *SeoCollection
+var collection *Collection
 
 func init() {
 	db = utils.TestDB()
@@ -36,7 +36,7 @@ type mircoDataInferface interface {
 
 type Category struct {
 	Name string
-	Seo  Setting `seo:"type:CategoryPage"`
+	SEO  Setting `seo:"type:CategoryPage"`
 }
 
 // Test Cases
@@ -66,8 +66,8 @@ type SeoAppendDefaultValueTestCase struct {
 // Runner
 func TestRender(t *testing.T) {
 	setupSeoCollection()
-	category := Category{Name: "Clothing", Seo: Setting{Title: "Using Customize Title", EnabledCustomize: false}}
-	categoryWithSeo := Category{Name: "Clothing", Seo: Setting{Title: "Using Customize Title", EnabledCustomize: true}}
+	category := Category{Name: "Clothing", SEO: Setting{Title: "Using Customize Title", EnabledCustomize: false}}
+	categoryWithSeo := Category{Name: "Clothing", SEO: Setting{Title: "Using Customize Title", EnabledCustomize: true}}
 	var testCases []RenderTestCase
 	testCases = append(testCases,
 		// Seo setting are empty
@@ -90,7 +90,7 @@ func TestRender(t *testing.T) {
 	for _, testCase := range testCases {
 		createGlobalSetting(testCase.SiteName)
 		createCategoryPageSetting(testCase.SeoSetting)
-		metatHTML := string(seoCollection.Render("CategoryPage", testCase.Settings...))
+		metatHTML := string(collection.Render("CategoryPage", testCase.Settings...))
 		metatHTML = strings.Replace(metatHTML, "\n", "", -1)
 		if string(metatHTML) == testCase.Result {
 			color.Green(fmt.Sprintf("Seo Render TestCase #%d: Success\n", i))
@@ -109,7 +109,7 @@ func TestSeoSections(t *testing.T) {
 		t.Errorf(color.RedString("\nSeoSections TestCase #1: should get empty settings"))
 	}
 
-	seoCollection.seoSections(db)()
+	collection.seoSections(db)()
 	db.Model(QorSeoSetting{}).Count(&count)
 	if count != 2 {
 		t.Errorf(color.RedString("\nSeoSections TestCase #2: should get two settings"))
@@ -133,7 +133,7 @@ func TestSeoGlobalSetting(t *testing.T) {
 		t.Errorf(color.RedString("\nSeoGlobalSetting TestCase #1: global setting should be empty"))
 	}
 
-	seoCollection.seoGlobalSetting(db)()
+	collection.seoGlobalSetting(db)()
 	var settings []QorSeoSetting
 	db.Find(&settings)
 	if len(settings) != 1 || !settings[0].IsGlobal {
@@ -146,7 +146,7 @@ func TestSeoGlobalSettingValue(t *testing.T) {
 	globalSettingValues := make(map[string]string)
 	globalSettingValues["SiteName"] = "New Site Name"
 	globalSettingValues["BrandName"] = "New Brand Name"
-	globalSetting := seoCollection.seoGlobalSettingValue(globalSettingValues)
+	globalSetting := collection.seoGlobalSettingValue(globalSettingValues)
 	if globalSetting.(SeoGlobalSetting).SiteName != "New Site Name" {
 		t.Errorf(color.RedString("\nSeoGlobalSettingValue TestCase #1: value doesn't be set"))
 	}
@@ -165,8 +165,8 @@ func TestSeoAppendDefaultValue(t *testing.T) {
 		{CatTitle: "", CatDescription: "", CatKeywords: "", CatEnabledCustomize: false, ExpectTitle: "GT", ExpectDescription: "GD", ExpectKeywords: "GK"},
 	}
 	for i, testCase := range testCases {
-		category := Category{Seo: Setting{Title: testCase.CatTitle, Description: testCase.CatDescription, Keywords: testCase.CatKeywords, EnabledCustomize: testCase.CatEnabledCustomize}}
-		setting := seoCollection.seoAppendDefaultValue(db)("CategoryPage", category.Seo).(Setting)
+		category := Category{SEO: Setting{Title: testCase.CatTitle, Description: testCase.CatDescription, Keywords: testCase.CatKeywords, EnabledCustomize: testCase.CatEnabledCustomize}}
+		setting := collection.seoAppendDefaultValue(db)("CategoryPage", category.SEO).(Setting)
 		var hasError bool
 		if setting.Title != testCase.ExpectTitle {
 			hasError = true
@@ -188,7 +188,7 @@ func TestSeoAppendDefaultValue(t *testing.T) {
 
 func TestSeoTagsByType(t *testing.T) {
 	setupSeoCollection()
-	validTags := seoCollection.seoTagsByType("CategoryPage")
+	validTags := collection.seoTagsByType("CategoryPage")
 	tags := []string{"SiteName", "BrandName", "Name", "URLTitle"}
 	if strings.Join(validTags, ",") != strings.Join(tags, ",") {
 		t.Errorf(color.RedString("\nSeoTagsByType TestCase: seo's tags should be %v", tags))
@@ -221,14 +221,14 @@ func setupSeoCollection() {
 		panic(err)
 	}
 	db.AutoMigrate(&QorSeoSetting{})
-	seoCollection = New()
-	seoCollection.RegisterGlobalSetting(&SeoGlobalSetting{SiteName: "Qor SEO", BrandName: "Qor"})
-	seoCollection.RegisterSeo(&Seo{
+	collection = New()
+	collection.RegisterGlobalVaribles(&SeoGlobalSetting{SiteName: "Qor SEO", BrandName: "Qor"})
+	collection.RegisterSeo(&SEO{
 		Name: "DefaultPage",
 	})
-	seoCollection.RegisterSeo(&Seo{
+	collection.RegisterSeo(&SEO{
 		Name:     "CategoryPage",
-		Settings: []string{"Name", "URLTitle"},
+		Varibles: []string{"Name", "URLTitle"},
 		Context: func(objects ...interface{}) (context map[string]string) {
 			context = make(map[string]string)
 			if len(objects) > 0 && objects[0] != nil {
@@ -245,7 +245,7 @@ func setupSeoCollection() {
 		},
 	})
 	Admin = admin.New(&qor.Config{DB: db})
-	Admin.AddResource(seoCollection, &admin.Config{Name: "SEO Setting", Menu: []string{"Site Management"}, Singleton: true})
+	Admin.AddResource(collection, &admin.Config{Name: "SEO Setting", Menu: []string{"Site Management"}, Singleton: true})
 	Admin.MountTo("/admin", http.NewServeMux())
 }
 
