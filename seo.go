@@ -20,6 +20,7 @@ type Collection struct {
 	SettingResource *admin.Resource
 	registeredSeo   []*SEO
 	globalSetting   interface{}
+	resource        *admin.Resource
 }
 
 // SEO represents a seo object for a page
@@ -142,6 +143,7 @@ func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 	if res, ok := res.(*admin.Resource); ok {
 		Admin := res.GetAdmin()
 		db := Admin.Config.DB
+		collection.resource = res
 		if collection.SettingResource == nil {
 			collection.SettingResource = res.GetAdmin().AddResource(&QorSeoSetting{}, &admin.Config{Invisible: true})
 		}
@@ -156,6 +158,7 @@ func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 		controller := seoController{Collection: collection, MainResource: res}
 		router.Get(res.ToParam(), controller.Index)
 		router.Put(fmt.Sprintf("%v/%v", res.ToParam(), collection.SettingResource.ParamIDName()), controller.Update)
+		router.Get(fmt.Sprintf("%v/%v", res.ToParam(), collection.SettingResource.ParamIDName()), controller.Edit)
 
 		collection.registerFuncMap(db, Admin, res, globalSettingRes)
 	}
@@ -228,6 +231,20 @@ func (collection *Collection) GetSeo(name string) *SEO {
 		}
 	}
 	return nil
+}
+
+// URLFor get setting's edit url
+func (collection *Collection) URLFor(setting interface{}) string {
+	qorAdmin := collection.resource.GetAdmin()
+	var (
+		scope        = qorAdmin.Config.DB.NewScope(setting)
+		primaryField = scope.PrimaryField()
+		primaryKey   string
+	)
+	if primaryField != nil {
+		primaryKey = fmt.Sprint(reflect.Indirect(primaryField.Field).Interface())
+	}
+	return fmt.Sprintf("%v/%v/%v", qorAdmin.GetRouter().Prefix, collection.resource.ToParam(), primaryKey)
 }
 
 // Scan scan value from database into struct

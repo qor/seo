@@ -23,6 +23,26 @@ func (sc seoController) Index(context *admin.Context) {
 	})
 }
 
+func (sc seoController) Edit(context *admin.Context) {
+	context = context.NewResourceContext(sc.Collection.SettingResource)
+	result, err := context.FindOne()
+	context.AddError(err)
+
+	responder.With("html", func() {
+		context.Execute("edit", struct {
+			Setting interface{}
+			EditUrl string
+			Metas   []*admin.Section
+		}{
+			Setting: result,
+			EditUrl: sc.Collection.URLFor(result),
+			Metas:   sc.Collection.seoSettingMetas(),
+		})
+	}).With("json", func() {
+		context.JSON("edit", result)
+	}).Respond(context.Request)
+}
+
 func (sc seoController) Update(context *admin.Context) {
 	context = context.NewResourceContext(sc.Collection.SettingResource)
 	var result interface{}
