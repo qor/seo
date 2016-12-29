@@ -1,14 +1,24 @@
 {{$inputName := .Meta.Name}}
 {{$labelName := .Meta.Label}}
-{{$attributesScoped := printf "%v.attributes.%v" .BaseResource.ToParam $labelName}}
-{{$value := raw_value_of .ResourceValue .Meta}}
+{{$rawValue := raw_value_of .ResourceValue .Meta}}
+{{$seoName := (seoType $rawValue .Meta)}}
+{{$value := seo_append_default_value $seoName $rawValue}}
 
-<div class="qor-form-container">
-  <div class="qor-seo qor-field">
-    <h4 class="qor-section-title">{{t $attributesScoped $labelName}}</h4>
+<div class="qor-seo qor-field" data-toggle="qor.seo">
 
+  <h4 class="qor-section-title qor-seo-title" style="display: none;">{{t (printf "qor_seo.%v.title" $seoName) $seoName}}</h4>
+
+  <div class="qor-seo__defaults">
+    <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="{{$seoName}}.EnabledCustomize">
+      <input type="checkbox" name="{{.InputName}}.EnabledCustomize" id="{{$seoName}}.EnabledCustomize" class="mdl-checkbox__input qor-seo__defaults-input" value="false" {{if not ($value.EnabledCustomize)}}checked{{end}} />
+      <span class="mdl-checkbox__label">{{ t "qor_seo.use_default" "Use Defaults" }}</span>
+    </label>
+    <input type="hidden" name="{{.InputName}}.EnabledCustomize" value="true" />
+  </div>
+
+  <div class="qor-seo__settings" {{if not ($value.EnabledCustomize)}}style="display: none;"{{end}}>
     <ul class="qor-seo-tags clearfix" data-input-id={{.InputId}}>
-      {{range $value.TagsArray}}
+      {{range seo_tags_by_type $seoName }}
         <li class="qor-seo-tag" data-tag-value="{{.}}"><i class="material-icons">add_box</i><span>{{.}}</span></li>
       {{end}}
     </ul>
@@ -34,11 +44,7 @@
       </div>
     </div>
 
-    <input type="hidden" class="qor-seo-tags-field" value="{{$value.Tags}}">
-    <input type="hidden" class="qor-seo-field" name={{.InputName}} />
-
-    <div class="qor-form__actions">
-      <button class="qor-seo-submit mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit" data-upgraded=",MaterialButton,MaterialRipple">{{t "qor_admin.form.save_changes" "Save Changes"}}<span class="mdl-button__ripple-container"><span class="mdl-ripple"></span></span></button>
-    </div>
+    <input type="hidden" class="qor-seo-type-field" name="{{.InputName}}.Type" value="{{$value.Type}}"/>
+    <input type="hidden" class="qor-seo-field" name="{{.InputName}}" />
   </div>
 </div>

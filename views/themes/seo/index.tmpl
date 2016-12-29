@@ -1,7 +1,7 @@
-{{$defaultVarSections := filter_default_var_sections new_sections}}
-{{$pageSections := filter_page_sections new_sections}}
+{{$resource := .Result.SettingResource}}
+{{$seo_global_setting := seo_global_setting}}
 
-<div class="qor-page__body qor-page__col-2">
+<div class="qor-page__body qor-page__col-2 clearfix qor-seo__index">
   {{render "shared/flashes"}}
   {{render "shared/errors"}}
 
@@ -27,13 +27,13 @@
   </div>
 
   <div class="qor-page__col-right">
-    <div class="qor-form-container">
-      <form class="qor-form" action="{{url_for .Result .Resource}}" method="POST" enctype="multipart/form-data">
+    <div class="qor-form-container qor-seo" data-toggle="qor.seo">
+      <form class="qor-form" action="{{seo_url_for $seo_global_setting}}" method="POST" enctype="multipart/form-data">
         <input name="_method" value="PUT" type="hidden">
-        {{render_form .Result $defaultVarSections}}
+        {{render_form (seo_global_setting_value $seo_global_setting.GetGlobalSetting) seo_global_setting_metas}}
 
         <div class="qor-form__actions">
-          <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">
+          <button class="qor-seo-submit mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">
             {{t "qor_admin.form.save_changes" "Save Changes"}}
           </button>
         </div>
@@ -49,9 +49,18 @@
   </div>
 
   <div class="qor-page__col-right">
-    <form class="qor-form" action="{{url_for .Result .Resource}}" method="POST" enctype="multipart/form-data">
-      <input name="_method" value="PUT" type="hidden">
-      {{render_form .Result $pageSections}}
-    </form>
+    {{range seo_sections}}
+      <div class="qor-seo" data-toggle="qor.seo">
+        <form class="qor-form" action="{{seo_url_for .}}" method="POST" enctype="multipart/form-data">
+          <input name="_method" value="PUT" type="hidden">
+          <div class="qor-form-container">
+            {{render_form . seo_setting_metas }}
+            <div class="qor-form__actions">
+              <button class="qor-seo-submit mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit" data-upgraded=",MaterialButton,MaterialRipple">{{t "qor_admin.form.save_changes" "Save Changes"}}<span class="mdl-button__ripple-container"><span class="mdl-ripple"></span></span></button>
+            </div>
+          </div>
+        </form>
+      </div>
+    {{end}}
   </div>
 </div>

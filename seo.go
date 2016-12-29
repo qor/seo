@@ -9,28 +9,242 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/fatih/color"
+	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
-	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
+	"github.com/qor/qor/utils"
 )
 
-// Setting could be used to field type for SEO Settings
+// Collection will hold registered seo configures and global setting definition and other configures
+type Collection struct {
+	SettingResource *admin.Resource
+	registeredSeo   []*SEO
+	globalSetting   interface{}
+	resource        *admin.Resource
+}
+
+// SEO represents a seo object for a page
+type SEO struct {
+	Name     string
+	Varibles []string
+	Context  func(...interface{}) map[string]string
+}
+
+// QorSeoSetting default seo model
+type QorSeoSetting struct {
+	gorm.Model
+	Name       string
+	Setting    Setting `gorm:"size:4294967295"`
+	collection *Collection
+	IsGlobal   bool
+}
+
+// Setting defined meta's attributes
 type Setting struct {
-	Title       string
-	Description string
-	Keywords    string
-	Tags        string
-	TagsArray   []string `json:"-"`
+	Title            string
+	Description      string
+	Keywords         string
+	Type             string
+	EnabledCustomize bool
+	GlobalSetting    map[string]string
 }
 
-type settingInterface interface {
-	GetSetting() Setting
+// QorSeoSettingInterface support customize Seo model
+type QorSeoSettingInterface interface {
+	GetName() string
+	SetName(string)
+	GetGlobalSetting() map[string]string
+	SetGlobalSetting(map[string]string)
+	GetSeoType() string
+	SetSeoType(string)
+	GetIsGlobal() bool
+	SetIsGlobal(bool)
+	GetTitle() string
+	GetDescription() string
+	GetKeywords() string
 }
 
-// GetSetting return itself to match interface
-func (setting Setting) GetSetting() Setting {
-	return setting
+func init() {
+	admin.RegisterViewPath("github.com/qor/seo/views")
+}
+
+// New initialize a SeoCollection instance
+func New() *Collection {
+	return &Collection{}
+}
+
+// RegisterGlobalVaribles register global setting and will represents as 'Site-wide Settings' part in admin
+func (collection *Collection) RegisterGlobalVaribles(s interface{}) {
+	collection.globalSetting = s
+}
+
+// RegisterSeo register a seo
+func (collection *Collection) RegisterSeo(seo *SEO) {
+	collection.registeredSeo = append(collection.registeredSeo, seo)
+}
+
+// GetName get QorSeoSetting's name
+func (s QorSeoSetting) GetName() string {
+	return s.Name
+}
+
+// SetName set QorSeoSetting's name
+func (s *QorSeoSetting) SetName(name string) {
+	s.Name = name
+}
+
+// GetSeoType get QorSeoSetting's type
+func (s QorSeoSetting) GetSeoType() string {
+	return s.Setting.Type
+}
+
+// SetSeoType set QorSeoSetting's type
+func (s *QorSeoSetting) SetSeoType(t string) {
+	s.Setting.Type = t
+}
+
+// GetIsGlobal get QorSeoSetting's isGlobal
+func (s QorSeoSetting) GetIsGlobal() bool {
+	return s.IsGlobal
+}
+
+// SetIsGlobal set QorSeoSetting's isGlobal
+func (s *QorSeoSetting) SetIsGlobal(isGlobal bool) {
+	s.IsGlobal = isGlobal
+}
+
+// GetGlobalSetting get QorSeoSetting's globalSetting
+func (s QorSeoSetting) GetGlobalSetting() map[string]string {
+	return s.Setting.GlobalSetting
+}
+
+// SetGlobalSetting set QorSeoSetting's globalSetting
+func (s *QorSeoSetting) SetGlobalSetting(globalSetting map[string]string) {
+	s.Setting.GlobalSetting = globalSetting
+}
+
+// GetTitle get Setting's title
+func (s QorSeoSetting) GetTitle() string {
+	return s.Setting.Title
+}
+
+// GetDescription get Setting's description
+func (s QorSeoSetting) GetDescription() string {
+	return s.Setting.Description
+}
+
+// GetKeywords get Setting's keywords
+func (s QorSeoSetting) GetKeywords() string {
+	return s.Setting.Keywords
+}
+
+// ConfigureQorResource configure seoCollection for qor admin
+func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
+	if res, ok := res.(*admin.Resource); ok {
+		Admin := res.GetAdmin()
+		db := Admin.Config.DB
+		collection.resource = res
+		if collection.SettingResource == nil {
+			collection.SettingResource = res.GetAdmin().AddResource(&QorSeoSetting{}, &admin.Config{Invisible: true})
+		}
+		collection.SettingResource.UseTheme("seo")
+		nameMeta := collection.SettingResource.GetMetaOrNew("Name")
+		nameMeta.Type = "hidden"
+		globalSettingRes := Admin.AddResource(collection.globalSetting, &admin.Config{Invisible: true})
+
+		res.Config.Singleton = true
+		res.UseTheme("seo")
+		router := Admin.GetRouter()
+		controller := seoController{Collection: collection, MainResource: res}
+		router.Get(res.ToParam(), controller.Index)
+		router.Put(fmt.Sprintf("%v/%v", res.ToParam(), collection.SettingResource.ParamIDName()), controller.Update)
+		router.Get(fmt.Sprintf("%v/%v", res.ToParam(), collection.SettingResource.ParamIDName()), controller.Edit)
+
+		collection.registerFuncMap(db, Admin, res, globalSettingRes)
+	}
+}
+
+// Render render SEO Setting
+func (collection Collection) Render(name string, objects ...interface{}) template.HTML {
+	var (
+		title       string
+		description string
+		keywords    string
+		setting     *Setting
+	)
+	db := collection.SettingResource.GetAdmin().Config.DB
+	for _, obj := range objects {
+		value := reflect.ValueOf(obj)
+		if value.IsValid() && value.Kind().String() == "struct" {
+			for i := 0; i < value.NumField(); i++ {
+				if value.Field(i).Type() == reflect.TypeOf(Setting{}) {
+					s := value.Field(i).Interface().(Setting)
+					setting = &s
+					break
+				}
+			}
+		}
+	}
+
+	globalSetting := collection.SettingResource.NewStruct()
+	db.Where("name = ?", name).Find(globalSetting)
+	seo := collection.GetSeo(name)
+	if seo == nil {
+		utils.ExitWithMsg(fmt.Printf("SEO: Can't find seo with name %v", name))
+		return ""
+	}
+
+	if setting != nil && setting.EnabledCustomize {
+		title = setting.Title
+		description = setting.Description
+		keywords = setting.Keywords
+	} else {
+		title = globalSetting.(QorSeoSettingInterface).GetTitle()
+		description = globalSetting.(QorSeoSettingInterface).GetDescription()
+		keywords = globalSetting.(QorSeoSettingInterface).GetKeywords()
+	}
+
+	var tagValues map[string]string
+	if seo.Context != nil {
+		tagValues = seo.Context(objects...)
+	} else {
+		tagValues = make(map[string]string)
+	}
+	s := collection.SettingResource.NewStruct()
+	db.Where("is_global = ?", true).First(s)
+	for k, v := range s.(QorSeoSettingInterface).GetGlobalSetting() {
+		if tagValues[k] == "" {
+			tagValues[k] = v
+		}
+	}
+	title = replaceTags(title, seo.Varibles, tagValues)
+	description = replaceTags(description, seo.Varibles, tagValues)
+	keywords = replaceTags(keywords, seo.Varibles, tagValues)
+	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", title, description, keywords))
+}
+
+// GetSeo get a Seo by name
+func (collection *Collection) GetSeo(name string) *SEO {
+	for _, s := range collection.registeredSeo {
+		if s.Name == name {
+			return s
+		}
+	}
+	return nil
+}
+
+// URLFor get setting's edit url
+func (collection *Collection) URLFor(setting interface{}) string {
+	qorAdmin := collection.resource.GetAdmin()
+	var (
+		scope        = qorAdmin.Config.DB.NewScope(setting)
+		primaryField = scope.PrimaryField()
+		primaryKey   string
+	)
+	if primaryField != nil {
+		primaryKey = fmt.Sprint(reflect.Indirect(primaryField.Field).Interface())
+	}
+	return fmt.Sprintf("%v/%v/%v", qorAdmin.GetRouter().Prefix, collection.resource.ToParam(), primaryKey)
 }
 
 // Scan scan value from database into struct
@@ -51,141 +265,29 @@ func (setting Setting) Value() (driver.Value, error) {
 	return string(result), err
 }
 
-// Render render SEO Setting
-func (setting Setting) Render(seoSetting interface{}, obj ...interface{}) template.HTML {
-	objTags := splitTags(setting.Tags)
-	reflectValue := reflect.Indirect(reflect.ValueOf(seoSetting))
-	allTags := prependMainObjectTags(objTags, reflectValue)
-	title := replaceTags(setting.Title, allTags, seoSetting, obj...)
-	description := replaceTags(setting.Description, allTags, seoSetting, obj...)
-	keywords := replaceTags(setting.Keywords, allTags, seoSetting, obj...)
-	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", title, description, keywords))
-}
-
 // ConfigureQorMetaBeforeInitialize configure SEO setting for qor admin
 func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 	if meta, ok := meta.(*admin.Meta); ok {
 		meta.Type = "seo"
-
-		if meta.GetValuer() == nil {
-			res := meta.GetBaseResource().(*admin.Resource)
-			Admin := res.GetAdmin()
-
-			tags := meta.FieldStruct.Struct.Tag.Get("seo")
-			tagsArray := splitTags(tags)
-			tagsArray = prependMainObjectTags(tagsArray, Admin.Config.DB.NewScope(res.Value).IndirectValue())
-
-			meta.SetValuer(func(value interface{}, ctx *qor.Context) interface{} {
-				settingField, _ := ctx.GetDB().NewScope(value).FieldByName(meta.FieldStruct.Struct.Name)
-				setting := settingField.Field.Interface().(settingInterface).GetSetting()
-				setting.Tags = tags
-				setting.TagsArray = tagsArray
-				return setting
-			})
-		}
-
 		res := meta.GetBaseResource().(*admin.Resource)
-		res.GetAdmin().RegisterViewPath("github.com/qor/seo/views")
-		res.UseTheme("seo")
-		registerFunctions(res)
+		res.GetAdmin().RegisterFuncMap("seoType", func(value interface{}, meta admin.Meta) string {
+			typeFromTag := meta.FieldStruct.Struct.Tag.Get("seo")
+			typeFromTag = utils.ParseTagOption(typeFromTag)["TYPE"]
+			if typeFromTag != "" {
+				return typeFromTag
+			}
+			return value.(Setting).Type
+		})
+		res.UseTheme("seo_meta")
 	}
-}
-
-func registerFunctions(res *admin.Resource) {
-	res.GetAdmin().RegisterFuncMap("filter_default_var_sections", func(sections []*admin.Section) []*admin.Section {
-		var filterDefaultVarSections []*admin.Section
-		for _, section := range sections {
-			isContainSeoTag := false
-			for _, row := range section.Rows {
-				for _, col := range row {
-					meta := res.GetMetaOrNew(col)
-					if meta != nil && meta.Type == "seo" {
-						isContainSeoTag = true
-					}
-				}
-			}
-			if !isContainSeoTag {
-				filterDefaultVarSections = append(filterDefaultVarSections, section)
-			}
-		}
-		return filterDefaultVarSections
-	})
-
-	res.GetAdmin().RegisterFuncMap("filter_page_sections", func(sections []*admin.Section) []*admin.Section {
-		var filterPageSections []*admin.Section
-		for _, section := range sections {
-			isContainSeoTag := false
-			for _, row := range section.Rows {
-				for _, col := range row {
-					meta := res.GetMetaOrNew(col)
-					if meta != nil && meta.Type == "seo" {
-						isContainSeoTag = true
-					}
-				}
-			}
-			if isContainSeoTag {
-				filterPageSections = append(filterPageSections, section)
-			}
-		}
-		return filterPageSections
-	})
 }
 
 // Helpers
-func replaceTags(originalVal string, validTags []string, mainObj interface{}, obj ...interface{}) string {
+func replaceTags(originalVal string, validTags []string, values map[string]string) string {
 	re := regexp.MustCompile("{{([a-zA-Z0-9]*)}}")
 	matches := re.FindAllStringSubmatch(originalVal, -1)
-	return replaceValues(originalVal, matches, append(obj, mainObj)...)
-}
-
-func isTagContains(tags []string, item string) bool {
-	for _, t := range tags {
-		if item == t {
-			return true
-		}
-	}
-	return false
-}
-
-func splitTags(tags string) []string {
-	var tagsArray []string
-	for _, tag := range strings.Split(tags, ",") {
-		tagsArray = append(tagsArray, strings.Trim(tag, " "))
-	}
-	return tagsArray
-}
-
-func prependMainObjectTags(tags []string, mainValue reflect.Value) []string {
-	var results []string
-	if mainValue.Kind() == reflect.Struct {
-		for i := 0; i < mainValue.NumField(); i++ {
-			if mainValue.Field(i).Kind() == reflect.String {
-				results = append(results, mainValue.Type().Field(i).Name)
-			}
-		}
-	}
-	for _, tag := range tags {
-		if tag != "" {
-			results = append(results, tag)
-		}
-	}
-	return results
-}
-
-func replaceValues(originalVal string, matches [][]string, objs ...interface{}) string {
 	for _, match := range matches {
-		for _, obj := range objs {
-			reflectValue := reflect.Indirect(reflect.ValueOf(obj))
-			if reflectValue.Kind() == reflect.Struct {
-				field := reflectValue.FieldByName(match[1])
-				if field.IsValid() {
-					value := field.Interface().(string)
-					originalVal = strings.Replace(originalVal, match[0], value, 1)
-				}
-			} else {
-				color.Yellow("[WARNING] Qor SEO: The parameter you passed is not a Struct")
-			}
-		}
+		originalVal = strings.Replace(originalVal, match[0], values[match[1]], 1)
 	}
 	return originalVal
 }
