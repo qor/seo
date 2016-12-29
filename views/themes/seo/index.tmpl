@@ -1,5 +1,6 @@
+{{$context := .}}
 {{$resource := .Result.SettingResource}}
-{{$seo_global_setting := seo_global_setting}}
+{{$seo_global_setting := seo_global_setting .}}
 
 <div class="qor-page__body qor-page__col-2 clearfix qor-seo__index">
   {{render "shared/flashes"}}
@@ -28,7 +29,7 @@
 
   <div class="qor-page__col-right">
     <div class="qor-form-container qor-seo" data-toggle="qor.seo">
-      <form class="qor-form" action="{{seo_url_for $seo_global_setting}}" method="POST" enctype="multipart/form-data">
+      <form class="qor-form" action="{{seo_url_for $context $seo_global_setting}}" method="POST" enctype="multipart/form-data">
         <input name="_method" value="PUT" type="hidden">
         {{render_form (seo_global_setting_value $seo_global_setting.GetGlobalSetting) seo_global_setting_metas}}
 
@@ -49,9 +50,9 @@
   </div>
 
   <div class="qor-page__col-right">
-    {{range seo_sections}}
+    {{range seo_sections . }}
       <div class="qor-seo" data-toggle="qor.seo">
-        <form class="qor-form" action="{{seo_url_for .}}" method="POST" enctype="multipart/form-data">
+        <form class="qor-form" action="{{seo_url_for $context . }}" method="POST" enctype="multipart/form-data">
           <input name="_method" value="PUT" type="hidden">
           <div class="qor-form-container">
             {{render_form . seo_setting_metas }}

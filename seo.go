@@ -11,6 +11,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
+	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
 )
@@ -33,10 +34,10 @@ type SEO struct {
 // QorSeoSetting default seo model
 type QorSeoSetting struct {
 	gorm.Model
-	Name       string
-	Setting    Setting `gorm:"size:4294967295"`
-	collection *Collection
-	IsGlobal   bool
+	Name        string
+	Setting     Setting `gorm:"size:4294967295"`
+	collection  *Collection
+	IsGlobalSeo bool
 }
 
 // Setting defined meta's attributes
@@ -57,8 +58,8 @@ type QorSeoSettingInterface interface {
 	SetGlobalSetting(map[string]string)
 	GetSeoType() string
 	SetSeoType(string)
-	GetIsGlobal() bool
-	SetIsGlobal(bool)
+	GetIsGlobalSeo() bool
+	SetIsGlobalSeo(bool)
 	GetTitle() string
 	GetDescription() string
 	GetKeywords() string
@@ -103,14 +104,14 @@ func (s *QorSeoSetting) SetSeoType(t string) {
 	s.Setting.Type = t
 }
 
-// GetIsGlobal get QorSeoSetting's isGlobal
-func (s QorSeoSetting) GetIsGlobal() bool {
-	return s.IsGlobal
+// GetIsGlobalSeo get QorSeoSetting's isGlobal
+func (s QorSeoSetting) GetIsGlobalSeo() bool {
+	return s.IsGlobalSeo
 }
 
-// SetIsGlobal set QorSeoSetting's isGlobal
-func (s *QorSeoSetting) SetIsGlobal(isGlobal bool) {
-	s.IsGlobal = isGlobal
+// SetIsGlobalSeo set QorSeoSetting's isGlobal
+func (s *QorSeoSetting) SetIsGlobalSeo(isGlobal bool) {
+	s.IsGlobalSeo = isGlobal
 }
 
 // GetGlobalSetting get QorSeoSetting's globalSetting
@@ -165,14 +166,15 @@ func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 }
 
 // Render render SEO Setting
-func (collection Collection) Render(name string, objects ...interface{}) template.HTML {
+func (collection Collection) Render(context *qor.Context, name string, objects ...interface{}) template.HTML {
 	var (
 		title       string
 		description string
 		keywords    string
 		setting     *Setting
 	)
-	db := collection.SettingResource.GetAdmin().Config.DB
+
+	db := context.GetDB()
 	for _, obj := range objects {
 		value := reflect.ValueOf(obj)
 		if value.IsValid() && value.Kind().String() == "struct" {
@@ -211,7 +213,7 @@ func (collection Collection) Render(name string, objects ...interface{}) templat
 		tagValues = make(map[string]string)
 	}
 	s := collection.SettingResource.NewStruct()
-	db.Where("is_global = ?", true).First(s)
+	db.Where("is_global_seo = ?", true).First(s)
 	for k, v := range s.(QorSeoSettingInterface).GetGlobalSetting() {
 		if tagValues[k] == "" {
 			tagValues[k] = v

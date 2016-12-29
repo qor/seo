@@ -2,7 +2,7 @@
 {{$labelName := .Meta.Label}}
 {{$rawValue := raw_value_of .ResourceValue .Meta}}
 {{$seoName := (seoType $rawValue .Meta)}}
-{{$value := seo_append_default_value $seoName $rawValue}}
+{{$value := seo_append_default_value .Context $seoName $rawValue}}
 
 <div class="qor-seo qor-field" data-toggle="qor.seo">
 

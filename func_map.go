@@ -9,11 +9,12 @@ import (
 	"github.com/qor/admin"
 )
 
-func (collection *Collection) seoSections(db *gorm.DB) func() []interface{} {
-	return func() []interface{} {
+func (collection *Collection) seoSections() func(context *admin.Context) []interface{} {
+	return func(context *admin.Context) []interface{} {
 		settings := []interface{}{}
 		for _, seo := range collection.registeredSeo {
 			s := collection.SettingResource.NewStruct()
+			db := context.GetDB()
 			db.Where("name = ?", seo.Name).First(s)
 			if db.NewRecord(s) {
 				s.(QorSeoSettingInterface).SetName(seo.Name)
@@ -30,14 +31,15 @@ func (collection *Collection) seoSettingMetas() []*admin.Section {
 	return collection.SettingResource.NewAttrs("ID", "Name", "Setting")
 }
 
-func (collection *Collection) seoGlobalSetting(db *gorm.DB) func() interface{} {
-	return func() interface{} {
+func (collection *Collection) seoGlobalSetting() func(context *admin.Context) interface{} {
+	return func(context *admin.Context) interface{} {
 		s := collection.SettingResource.NewStruct()
-		db.Where("is_global = ?", true).First(s)
+		db := context.GetDB()
+		db.Where("is_global_seo = ?", true).First(s)
 		if db.NewRecord(s) {
 			s.(QorSeoSettingInterface).SetName("QorSeoGlobalSettings")
 			s.(QorSeoSettingInterface).SetSeoType("QorSeoGlobalSettings")
-			s.(QorSeoSettingInterface).SetIsGlobal(true)
+			s.(QorSeoSettingInterface).SetIsGlobalSeo(true)
 			db.Save(s)
 		}
 		return s
@@ -76,8 +78,9 @@ func (collection *Collection) seoTagsByType(name string) (tags []string) {
 	return tags
 }
 
-func (collection *Collection) seoAppendDefaultValue(db *gorm.DB) func(seoName string, resourceSeoValue interface{}) interface{} {
-	return func(seoName string, resourceSeoValue interface{}) interface{} {
+func (collection *Collection) seoAppendDefaultValue() func(context *admin.Context, seoName string, resourceSeoValue interface{}) interface{} {
+	return func(context *admin.Context, seoName string, resourceSeoValue interface{}) interface{} {
+		db := context.GetDB()
 		globalInteface := collection.SettingResource.NewStruct()
 		db.Where("name = ?", seoName).Find(globalInteface)
 		globalSetting := globalInteface.(QorSeoSettingInterface)
@@ -91,22 +94,23 @@ func (collection *Collection) seoAppendDefaultValue(db *gorm.DB) func(seoName st
 	}
 }
 
-func (collection *Collection) seoURLFor(db *gorm.DB, a *admin.Admin, res *admin.Resource) func(value interface{}) string {
-	return func(value interface{}) string {
+func (collection *Collection) seoURLFor(a *admin.Admin, res *admin.Resource) func(context *admin.Context, value interface{}) string {
+	return func(context *admin.Context, value interface{}) string {
+		db := context.GetDB()
 		return fmt.Sprintf("%v/%v/%v", a.GetRouter().Prefix, res.ToParam(), db.NewScope(value).PrimaryKeyValue())
 	}
 }
 
 func (collection *Collection) registerFuncMap(db *gorm.DB, a *admin.Admin, res *admin.Resource, globalSettingRes *admin.Resource) {
 	funcMaps := template.FuncMap{
-		"seo_sections":             collection.seoSections(db),
+		"seo_sections":             collection.seoSections(),
 		"seo_setting_metas":        collection.seoSettingMetas,
 		"seo_global_setting_value": collection.seoGlobalSettingValue,
 		"seo_global_setting_metas": collection.seoGlobalSettingMetas(globalSettingRes),
-		"seo_global_setting":       collection.seoGlobalSetting(db),
+		"seo_global_setting":       collection.seoGlobalSetting(),
 		"seo_tags_by_type":         collection.seoTagsByType,
-		"seo_append_default_value": collection.seoAppendDefaultValue(db),
-		"seo_url_for":              collection.seoURLFor(db, a, res),
+		"seo_append_default_value": collection.seoAppendDefaultValue(),
+		"seo_url_for":              collection.seoURLFor(a, res),
 	}
 
 	for key, value := range funcMaps {

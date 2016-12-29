@@ -87,10 +87,11 @@ func TestRender(t *testing.T) {
 		RenderTestCase{"Qor", Setting{Title: "{{SiteName}}", Description: "{{URLTitle}}", Keywords: "{{URLTitle}}"}, []interface{}{categoryWithSeo}, `<title>Using Customize Title</title><meta name="description" content=""><meta name="keywords" content=""/>`},
 	)
 	i := 1
+	context := &qor.Context{DB: db}
 	for _, testCase := range testCases {
 		createGlobalSetting(testCase.SiteName)
 		createCategoryPageSetting(testCase.SeoSetting)
-		metatHTML := string(collection.Render("CategoryPage", testCase.Settings...))
+		metatHTML := string(collection.Render(context, "CategoryPage", testCase.Settings...))
 		metatHTML = strings.Replace(metatHTML, "\n", "", -1)
 		if string(metatHTML) == testCase.Result {
 			color.Green(fmt.Sprintf("Seo Render TestCase #%d: Success\n", i))
@@ -109,7 +110,7 @@ func TestSeoSections(t *testing.T) {
 		t.Errorf(color.RedString("\nSeoSections TestCase #1: should get empty settings"))
 	}
 
-	collection.seoSections(db)()
+	collection.seoSections()(&admin.Context{Context: &qor.Context{DB: db}})
 	db.Model(QorSeoSetting{}).Count(&count)
 	if count != 2 {
 		t.Errorf(color.RedString("\nSeoSections TestCase #2: should get two settings"))
@@ -133,10 +134,10 @@ func TestSeoGlobalSetting(t *testing.T) {
 		t.Errorf(color.RedString("\nSeoGlobalSetting TestCase #1: global setting should be empty"))
 	}
 
-	collection.seoGlobalSetting(db)()
+	collection.seoGlobalSetting()(&admin.Context{Context: &qor.Context{DB: db}})
 	var settings []QorSeoSetting
 	db.Find(&settings)
-	if len(settings) != 1 || !settings[0].IsGlobal {
+	if len(settings) != 1 || !settings[0].IsGlobalSeo {
 		t.Errorf(color.RedString("\nSeoGlobalSetting TestCase #2: global setting should be present"))
 	}
 }
@@ -166,7 +167,7 @@ func TestSeoAppendDefaultValue(t *testing.T) {
 	}
 	for i, testCase := range testCases {
 		category := Category{SEO: Setting{Title: testCase.CatTitle, Description: testCase.CatDescription, Keywords: testCase.CatKeywords, EnabledCustomize: testCase.CatEnabledCustomize}}
-		setting := collection.seoAppendDefaultValue(db)("CategoryPage", category.SEO).(Setting)
+		setting := collection.seoAppendDefaultValue()(&admin.Context{Context: &qor.Context{DB: db}}, "CategoryPage", category.SEO).(Setting)
 		var hasError bool
 		if setting.Title != testCase.ExpectTitle {
 			hasError = true
@@ -256,7 +257,7 @@ func createGlobalSetting(siteName string) {
 	globalSetting["SiteName"] = siteName
 	globalSeoSetting.Setting = Setting{GlobalSetting: globalSetting}
 	globalSeoSetting.Name = "QorSeoGlobalSettings"
-	globalSeoSetting.IsGlobal = true
+	globalSeoSetting.IsGlobalSeo = true
 	if db.NewRecord(globalSeoSetting) {
 		db.Create(&globalSeoSetting)
 	} else {
