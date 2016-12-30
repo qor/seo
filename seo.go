@@ -53,6 +53,7 @@ type Setting struct {
 
 // QorSeoSettingInterface support customize Seo model
 type QorSeoSettingInterface interface {
+	GetId() uint
 	GetName() string
 	SetName(string)
 	GetGlobalSetting() map[string]string
@@ -83,6 +84,11 @@ func (collection *Collection) RegisterGlobalVaribles(s interface{}) {
 // RegisterSeo register a seo
 func (collection *Collection) RegisterSeo(seo *SEO) {
 	collection.registeredSeo = append(collection.registeredSeo, seo)
+}
+
+// GetId get QorSeoSetting's id
+func (s QorSeoSetting) GetId() uint {
+	return s.ID
 }
 
 // GetName get QorSeoSetting's name

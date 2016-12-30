@@ -1,6 +1,7 @@
 package seo
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -57,10 +58,10 @@ func (sc seoController) Update(context *admin.Context) {
 	}
 	context.DB.Where("name = ?", name).First(result)
 	if context.DB.NewRecord(result) {
-		result.(QorSeoSettingInterface).SetName(name)
-		result.(QorSeoSettingInterface).SetSeoType(name)
-		newDB := context.DB.Save(result)
-		context.AddError(newDB.Error)
+		seoSettingInterface := result.(QorSeoSettingInterface)
+		context.Request.Form["QorResource.ID"] = []string{fmt.Sprintf("%v", seoSettingInterface.GetId())}
+		context.Request.Form["QorResource.Name"] = []string{name}
+		context.Request.Form["QorResource.Setting.Type"] = []string{name}
 	}
 
 	seoSettingInterface := result.(QorSeoSettingInterface)
