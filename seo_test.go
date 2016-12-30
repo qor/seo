@@ -224,7 +224,7 @@ func setupSeoCollection() {
 		panic(err)
 	}
 	db.AutoMigrate(&QorSeoSetting{})
-	collection = New()
+	collection = New("Seo")
 	collection.RegisterGlobalVaribles(&SeoGlobalSetting{SiteName: "Qor SEO", BrandName: "Qor"})
 	collection.RegisterSeo(&SEO{
 		Name: "DefaultPage",

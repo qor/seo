@@ -19,11 +19,12 @@ import (
 
 // Collection will hold registered seo configures and global setting definition and other configures
 type Collection struct {
-	SettingResource *admin.Resource
-	registeredSeo   []*SEO
-	globalSetting   interface{}
-	resource        *admin.Resource
-	globalResource  *admin.Resource
+	SettingResource   *admin.Resource
+	GlobalSettingName string
+	registeredSeo     []*SEO
+	globalSetting     interface{}
+	resource          *admin.Resource
+	globalResource    *admin.Resource
 }
 
 // SEO represents a seo object for a page
@@ -75,8 +76,8 @@ func init() {
 }
 
 // New initialize a SeoCollection instance
-func New() *Collection {
-	return &Collection{}
+func New(name string) *Collection {
+	return &Collection{GlobalSettingName: name}
 }
 
 // RegisterGlobalVaribles register global setting and will represents as 'Site-wide Settings' part in admin

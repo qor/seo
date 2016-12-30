@@ -33,8 +33,8 @@ func seoGlobalSetting(context *admin.Context, collection *Collection) interface{
 	db := context.GetDB()
 	db.Where("is_global_seo = ?", true).First(s)
 	if db.NewRecord(s) {
-		s.(QorSeoSettingInterface).SetName("QorSeoGlobalSettings")
-		s.(QorSeoSettingInterface).SetSeoType("QorSeoGlobalSettings")
+		s.(QorSeoSettingInterface).SetName(collection.GlobalSettingName)
+		s.(QorSeoSettingInterface).SetSeoType(collection.GlobalSettingName)
 		s.(QorSeoSettingInterface).SetIsGlobalSeo(true)
 		db.Save(s)
 	}

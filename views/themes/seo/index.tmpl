@@ -30,7 +30,7 @@
 
   <div class="qor-page__col-right">
     <div class="qor-form-container qor-seo" data-toggle="qor.seo">
-      <form class="qor-form" action="{{seo_url_for $collection ""}}" method="POST" enctype="multipart/form-data">
+      <form class="qor-form" action="{{seo_url_for $collection $seo_global_setting.Name}}" method="POST" enctype="multipart/form-data">
         <input name="_method" value="PUT" type="hidden">
         {{render_form (seo_global_setting_value $collection $seo_global_setting.GetGlobalSetting) (seo_global_setting_metas $collection)}}
 

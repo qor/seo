@@ -68,7 +68,7 @@ func (sc seoController) Update(context *admin.Context) {
 	}
 
 	seoSettingInterface := result.(QorSeoSettingInterface)
-	if seoSettingInterface.GetName() == "QorSeoGlobalSettings" {
+	if seoSettingInterface.GetIsGlobalSeo() {
 		globalSetting := make(map[string]string)
 		for fieldWithPrefix := range context.Request.Form {
 			if strings.HasPrefix(fieldWithPrefix, "QorResource") {
