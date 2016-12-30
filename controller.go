@@ -37,11 +37,11 @@ func (sc seoController) InlineEdit(context *admin.Context) {
 	responder.With("html", func() {
 		context.Execute("edit", struct {
 			Setting interface{}
-			EditUrl string
+			EditURL string
 			Metas   []*admin.Section
 		}{
 			Setting: result,
-			EditUrl: sc.Collection.SeoSettingUrl(name),
+			EditURL: sc.Collection.SeoSettingURL(name),
 			Metas:   sc.Collection.seoSettingMetas(),
 		})
 	}).With("json", func() {
@@ -59,7 +59,7 @@ func (sc seoController) Update(context *admin.Context) {
 	context.DB.Where("name = ?", name).First(result)
 	if context.DB.NewRecord(result) {
 		seoSettingInterface := result.(QorSeoSettingInterface)
-		context.Request.Form["QorResource.ID"] = []string{fmt.Sprintf("%v", seoSettingInterface.GetId())}
+		context.Request.Form["QorResource.ID"] = []string{fmt.Sprintf("%v", seoSettingInterface.GetID())}
 		context.Request.Form["QorResource.Name"] = []string{name}
 		context.Request.Form["QorResource.Setting.Type"] = []string{name}
 	}

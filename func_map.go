@@ -110,7 +110,7 @@ func (collection *Collection) registerFuncMap(db *gorm.DB, a *admin.Admin, res *
 		"seo_global_setting":       collection.seoGlobalSetting(),
 		"seo_tags_by_type":         collection.seoTagsByType,
 		"seo_append_default_value": collection.seoAppendDefaultValue(),
-		"seo_url_for":              collection.SeoSettingUrl,
+		"seo_url_for":              collection.SeoSettingURL,
 	}
 
 	for key, value := range funcMaps {

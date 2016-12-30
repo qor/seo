@@ -53,7 +53,7 @@ type Setting struct {
 
 // QorSeoSettingInterface support customize Seo model
 type QorSeoSettingInterface interface {
-	GetId() uint
+	GetID() uint
 	GetName() string
 	SetName(string)
 	GetGlobalSetting() map[string]string
@@ -86,8 +86,8 @@ func (collection *Collection) RegisterSeo(seo *SEO) {
 	collection.registeredSeo = append(collection.registeredSeo, seo)
 }
 
-// GetId get QorSeoSetting's id
-func (s QorSeoSetting) GetId() uint {
+// GetID get QorSeoSetting's id
+func (s QorSeoSetting) GetID() uint {
 	return s.ID
 }
 
@@ -242,8 +242,8 @@ func (collection *Collection) GetSeo(name string) *SEO {
 	return &SEO{Name: name}
 }
 
-// SeoSettingUrl get setting inline edit url by name
-func (collection *Collection) SeoSettingUrl(name string) string {
+// SeoSettingURL get setting inline edit url by name
+func (collection *Collection) SeoSettingURL(name string) string {
 	qorAdmin := collection.resource.GetAdmin()
 	return fmt.Sprintf("%v/%v/!seo_setting?name=%v", qorAdmin.GetRouter().Prefix, collection.resource.ToParam(), url.QueryEscape(name))
 }
