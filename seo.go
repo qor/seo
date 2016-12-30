@@ -253,7 +253,9 @@ func (collection *Collection) GetSeo(name string) *SEO {
 			return s
 		}
 	}
-	return &SEO{Name: name}
+	newSeo := &SEO{Name: name}
+	newSeo.collection = collection
+	return newSeo
 }
 
 // SeoSettingURL get setting inline edit url by name
