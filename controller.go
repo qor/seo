@@ -2,6 +2,7 @@ package seo
 
 import (
 	"net/http"
+	"net/url"
 	"path"
 	"strings"
 
@@ -23,10 +24,14 @@ func (sc seoController) Index(context *admin.Context) {
 	})
 }
 
-func (sc seoController) Edit(context *admin.Context) {
+func (sc seoController) InlineEdit(context *admin.Context) {
 	context = context.NewResourceContext(sc.Collection.SettingResource)
-	result, err := context.FindOne()
-	context.AddError(err)
+	result := sc.Collection.SettingResource.NewStruct()
+	name, err := url.QueryUnescape(context.Request.Form.Get("name"))
+	if err != nil {
+		context.AddError(err)
+	}
+	context.DB.Where("name = ?", name).First(result)
 
 	responder.With("html", func() {
 		context.Execute("edit", struct {
@@ -35,7 +40,7 @@ func (sc seoController) Edit(context *admin.Context) {
 			Metas   []*admin.Section
 		}{
 			Setting: result,
-			EditUrl: sc.Collection.URLFor(result),
+			EditUrl: sc.Collection.SeoSettingUrl(name),
 			Metas:   sc.Collection.seoSettingMetas(),
 		})
 	}).With("json", func() {
@@ -45,11 +50,18 @@ func (sc seoController) Edit(context *admin.Context) {
 
 func (sc seoController) Update(context *admin.Context) {
 	context = context.NewResourceContext(sc.Collection.SettingResource)
-	var result interface{}
-	var err error
-
-	result, err = context.FindOne()
-	context.AddError(err)
+	result := sc.Collection.SettingResource.NewStruct()
+	name, err := url.QueryUnescape(context.Request.Form.Get("name"))
+	if err != nil {
+		context.AddError(err)
+	}
+	context.DB.Where("name = ?", name).First(result)
+	if context.DB.NewRecord(result) {
+		result.(QorSeoSettingInterface).SetName(name)
+		result.(QorSeoSettingInterface).SetSeoType(name)
+		newDB := context.DB.Save(result)
+		context.AddError(newDB.Error)
+	}
 
 	seoSettingInterface := result.(QorSeoSettingInterface)
 	if seoSettingInterface.GetName() == "QorSeoGlobalSettings" {

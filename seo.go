@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"net/url"
 	"reflect"
 	"regexp"
 	"strings"
@@ -158,8 +159,8 @@ func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 		router := Admin.GetRouter()
 		controller := seoController{Collection: collection, MainResource: res}
 		router.Get(res.ToParam(), controller.Index)
-		router.Put(fmt.Sprintf("%v/%v", res.ToParam(), collection.SettingResource.ParamIDName()), controller.Update)
-		router.Get(fmt.Sprintf("%v/%v", res.ToParam(), collection.SettingResource.ParamIDName()), controller.Edit)
+		router.Put(fmt.Sprintf("%v/!seo_setting", res.ToParam()), controller.Update)
+		router.Get(fmt.Sprintf("%v/!seo_setting", res.ToParam()), controller.InlineEdit)
 
 		collection.registerFuncMap(db, Admin, res, globalSettingRes)
 	}
@@ -232,21 +233,13 @@ func (collection *Collection) GetSeo(name string) *SEO {
 			return s
 		}
 	}
-	return nil
+	return &SEO{Name: name}
 }
 
-// URLFor get setting's edit url
-func (collection *Collection) URLFor(setting interface{}) string {
+// SeoSettingUrl get setting inline edit url by name
+func (collection *Collection) SeoSettingUrl(name string) string {
 	qorAdmin := collection.resource.GetAdmin()
-	var (
-		scope        = qorAdmin.Config.DB.NewScope(setting)
-		primaryField = scope.PrimaryField()
-		primaryKey   string
-	)
-	if primaryField != nil {
-		primaryKey = fmt.Sprint(reflect.Indirect(primaryField.Field).Interface())
-	}
-	return fmt.Sprintf("%v/%v/%v", qorAdmin.GetRouter().Prefix, collection.resource.ToParam(), primaryKey)
+	return fmt.Sprintf("%v/%v/!seo_setting?name=%v", qorAdmin.GetRouter().Prefix, collection.resource.ToParam(), url.QueryEscape(name))
 }
 
 // Scan scan value from database into struct
