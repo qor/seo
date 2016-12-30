@@ -19,8 +19,10 @@ type seoController struct {
 func (sc seoController) Index(context *admin.Context) {
 	context = context.NewResourceContext(sc.Collection.SettingResource)
 	context.Execute("index", struct {
+		Collection      *Collection
 		SettingResource *admin.Resource
 	}{
+		Collection:      sc.Collection,
 		SettingResource: sc.Collection.SettingResource,
 	})
 }
@@ -34,6 +36,7 @@ func (sc seoController) InlineEdit(context *admin.Context) {
 	}
 	context.DB.Where("name = ?", name).First(result)
 
+	result.(QorSeoSettingInterface).SetCollection(sc.Collection)
 	responder.With("html", func() {
 		context.Execute("edit", struct {
 			Setting interface{}
@@ -42,7 +45,7 @@ func (sc seoController) InlineEdit(context *admin.Context) {
 		}{
 			Setting: result,
 			EditURL: sc.Collection.SeoSettingURL(name),
-			Metas:   sc.Collection.seoSettingMetas(),
+			Metas:   seoSettingMetas(sc.Collection),
 		})
 	}).With("json", func() {
 		context.JSON("edit", result)

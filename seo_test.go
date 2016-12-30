@@ -110,7 +110,7 @@ func TestSeoSections(t *testing.T) {
 		t.Errorf(color.RedString("\nSeoSections TestCase #1: should get empty settings"))
 	}
 
-	collection.seoSections()(&admin.Context{Context: &qor.Context{DB: db}})
+	seoSections(&admin.Context{Context: &qor.Context{DB: db}}, collection)
 	db.Model(QorSeoSetting{}).Count(&count)
 	if count != 2 {
 		t.Errorf(color.RedString("\nSeoSections TestCase #2: should get two settings"))
@@ -134,7 +134,7 @@ func TestSeoGlobalSetting(t *testing.T) {
 		t.Errorf(color.RedString("\nSeoGlobalSetting TestCase #1: global setting should be empty"))
 	}
 
-	collection.seoGlobalSetting()(&admin.Context{Context: &qor.Context{DB: db}})
+	seoGlobalSetting(&admin.Context{Context: &qor.Context{DB: db}}, collection)
 	var settings []QorSeoSetting
 	db.Find(&settings)
 	if len(settings) != 1 || !settings[0].IsGlobalSeo {
@@ -147,7 +147,7 @@ func TestSeoGlobalSettingValue(t *testing.T) {
 	globalSettingValues := make(map[string]string)
 	globalSettingValues["SiteName"] = "New Site Name"
 	globalSettingValues["BrandName"] = "New Brand Name"
-	globalSetting := collection.seoGlobalSettingValue(globalSettingValues)
+	globalSetting := seoGlobalSettingValue(collection, globalSettingValues)
 	if globalSetting.(SeoGlobalSetting).SiteName != "New Site Name" {
 		t.Errorf(color.RedString("\nSeoGlobalSettingValue TestCase #1: value doesn't be set"))
 	}
@@ -167,7 +167,8 @@ func TestSeoAppendDefaultValue(t *testing.T) {
 	}
 	for i, testCase := range testCases {
 		category := Category{SEO: Setting{Title: testCase.CatTitle, Description: testCase.CatDescription, Keywords: testCase.CatKeywords, EnabledCustomize: testCase.CatEnabledCustomize}}
-		setting := collection.seoAppendDefaultValue()(&admin.Context{Context: &qor.Context{DB: db}}, "CategoryPage", category.SEO).(Setting)
+		seo := collection.GetSeo("CategoryPage")
+		setting := seoAppendDefaultValue(&admin.Context{Context: &qor.Context{DB: db}}, seo, category.SEO).(Setting)
 		var hasError bool
 		if setting.Title != testCase.ExpectTitle {
 			hasError = true
@@ -189,7 +190,8 @@ func TestSeoAppendDefaultValue(t *testing.T) {
 
 func TestSeoTagsByType(t *testing.T) {
 	setupSeoCollection()
-	validTags := collection.seoTagsByType("CategoryPage")
+	seo := collection.GetSeo("CategoryPage")
+	validTags := seoTagsByType(seo)
 	tags := []string{"SiteName", "BrandName", "Name", "URLTitle"}
 	if strings.Join(validTags, ",") != strings.Join(tags, ",") {
 		t.Errorf(color.RedString("\nSeoTagsByType TestCase: seo's tags should be %v", tags))

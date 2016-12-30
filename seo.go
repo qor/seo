@@ -23,13 +23,15 @@ type Collection struct {
 	registeredSeo   []*SEO
 	globalSetting   interface{}
 	resource        *admin.Resource
+	globalResource  *admin.Resource
 }
 
 // SEO represents a seo object for a page
 type SEO struct {
-	Name     string
-	Varibles []string
-	Context  func(...interface{}) map[string]string
+	Name       string
+	Varibles   []string
+	Context    func(...interface{}) map[string]string
+	collection *Collection
 }
 
 // QorSeoSetting default seo model
@@ -65,6 +67,7 @@ type QorSeoSettingInterface interface {
 	GetTitle() string
 	GetDescription() string
 	GetKeywords() string
+	SetCollection(*Collection)
 }
 
 func init() {
@@ -83,6 +86,7 @@ func (collection *Collection) RegisterGlobalVaribles(s interface{}) {
 
 // RegisterSeo register a seo
 func (collection *Collection) RegisterSeo(seo *SEO) {
+	seo.collection = collection
 	collection.registeredSeo = append(collection.registeredSeo, seo)
 }
 
@@ -146,11 +150,20 @@ func (s QorSeoSetting) GetKeywords() string {
 	return s.Setting.Keywords
 }
 
+// SetCollection set Setting's collection
+func (s *QorSeoSetting) SetCollection(collection *Collection) {
+	s.collection = collection
+}
+
+// GetSeo get Setting's SEO configure
+func (s QorSeoSetting) GetSeo() *SEO {
+	return s.collection.GetSeo(s.Name)
+}
+
 // ConfigureQorResource configure seoCollection for qor admin
 func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 	if res, ok := res.(*admin.Resource); ok {
 		Admin := res.GetAdmin()
-		db := Admin.Config.DB
 		collection.resource = res
 		if collection.SettingResource == nil {
 			collection.SettingResource = res.GetAdmin().AddResource(&QorSeoSetting{}, &admin.Config{Invisible: true})
@@ -159,6 +172,7 @@ func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 		nameMeta := collection.SettingResource.GetMetaOrNew("Name")
 		nameMeta.Type = "hidden"
 		globalSettingRes := Admin.AddResource(collection.globalSetting, &admin.Config{Invisible: true})
+		collection.globalResource = globalSettingRes
 
 		res.Config.Singleton = true
 		res.UseTheme("seo")
@@ -168,7 +182,7 @@ func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 		router.Put(fmt.Sprintf("%v/!seo_setting", res.ToParam()), controller.Update)
 		router.Get(fmt.Sprintf("%v/!seo_setting", res.ToParam()), controller.InlineEdit)
 
-		collection.registerFuncMap(db, Admin, res, globalSettingRes)
+		registerFuncMap(Admin)
 	}
 }
 
