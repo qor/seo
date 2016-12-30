@@ -73,7 +73,7 @@ func seoTagsByType(seo *SEO) (tags []string) {
 func seoAppendDefaultValue(context *admin.Context, seo *SEO, resourceSeoValue interface{}) interface{} {
 	db := context.GetDB()
 	globalInteface := seo.collection.SettingResource.NewStruct()
-	db.Where("name = ?", seo.Name).Find(globalInteface)
+	db.Where("name = ?", seo.Name).First(globalInteface)
 	globalSetting := globalInteface.(QorSeoSettingInterface)
 	setting := resourceSeoValue.(Setting)
 	if !setting.EnabledCustomize && setting.Title == "" && setting.Description == "" && setting.Keywords == "" {

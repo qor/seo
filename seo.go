@@ -210,7 +210,7 @@ func (collection Collection) Render(context *qor.Context, name string, objects .
 	}
 
 	globalSetting := collection.SettingResource.NewStruct()
-	db.Where("name = ?", name).Find(globalSetting)
+	db.Where("name = ?", name).First(globalSetting)
 	seo := collection.GetSeo(name)
 	if seo == nil {
 		utils.ExitWithMsg(fmt.Printf("SEO: Can't find seo with name %v", name))
