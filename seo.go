@@ -39,14 +39,14 @@ type SEO struct {
 type QorSeoSetting struct {
 	gorm.Model
 	Name        string
-	Setting     Setting `gorm:"size:4294967295"`
+	Setting     Setting
 	collection  *Collection
 	IsGlobalSeo bool
 }
 
 // Setting defined meta's attributes
 type Setting struct {
-	Title            string
+	Title            string `gorm:"size:4294967295"`
 	Description      string
 	Keywords         string
 	Type             string
