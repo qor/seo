@@ -170,6 +170,7 @@ func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 			collection.SettingResource = res.GetAdmin().AddResource(&QorSeoSetting{}, &admin.Config{Invisible: true})
 		}
 		collection.SettingResource.UseTheme("seo")
+		collection.SettingResource.EditAttrs("ID", "Name", "Setting")
 		nameMeta := collection.SettingResource.GetMetaOrNew("Name")
 		nameMeta.Type = "hidden"
 		globalSettingRes := Admin.AddResource(collection.globalSetting, &admin.Config{Invisible: true})

@@ -25,7 +25,7 @@ func seoSections(context *admin.Context, collection *Collection) []interface{} {
 }
 
 func seoSettingMetas(collection *Collection) []*admin.Section {
-	return collection.SettingResource.NewAttrs("ID", "Name", "Setting")
+	return collection.SettingResource.EditAttrs()
 }
 
 func seoGlobalSetting(context *admin.Context, collection *Collection) interface{} {
