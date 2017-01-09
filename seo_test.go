@@ -254,11 +254,11 @@ func setupSeoCollection() {
 
 func createGlobalSetting(siteName string) {
 	globalSeoSetting := QorSeoSetting{}
-	db.Where("name = ?", "QorSeoGlobalSettings").Find(&globalSeoSetting)
+	db.Where("name = ?", "Seo").Find(&globalSeoSetting)
 	globalSetting := make(map[string]string)
 	globalSetting["SiteName"] = siteName
 	globalSeoSetting.Setting = Setting{GlobalSetting: globalSetting}
-	globalSeoSetting.Name = "QorSeoGlobalSettings"
+	globalSeoSetting.Name = "Seo"
 	globalSeoSetting.IsGlobalSeo = true
 	if db.NewRecord(globalSeoSetting) {
 		db.Create(&globalSeoSetting)
