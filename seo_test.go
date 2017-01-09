@@ -118,7 +118,7 @@ func TestSeoSections(t *testing.T) {
 
 	var settings []QorSeoSetting
 	settingNames := []string{"CategoryPage", "DefaultPage"}
-	db.Model(QorSeoSetting{}).Find(&settings)
+	db.Model(QorSeoSetting{}).Order("Name ASC").Find(&settings)
 	for i, setting := range settings {
 		if setting.Name != settingNames[i] {
 			t.Errorf(color.RedString(fmt.Sprintf("\nSeoSections TestCase #%v: should has setting `%v`", 3+i, settingNames[i])))
