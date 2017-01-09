@@ -9,8 +9,8 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
@@ -37,11 +37,14 @@ type SEO struct {
 
 // QorSeoSetting default seo model
 type QorSeoSetting struct {
-	gorm.Model
-	Name        string
+	Name        string `gorm:"primary_key"`
 	Setting     Setting
 	collection  *Collection
 	IsGlobalSeo bool
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
 }
 
 // Setting defined meta's attributes
@@ -56,7 +59,6 @@ type Setting struct {
 
 // QorSeoSettingInterface support customize Seo model
 type QorSeoSettingInterface interface {
-	GetID() uint
 	GetName() string
 	SetName(string)
 	GetGlobalSetting() map[string]string
@@ -89,11 +91,6 @@ func (collection *Collection) RegisterGlobalVaribles(s interface{}) {
 func (collection *Collection) RegisterSeo(seo *SEO) {
 	seo.collection = collection
 	collection.registeredSeo = append(collection.registeredSeo, seo)
-}
-
-// GetID get QorSeoSetting's id
-func (s QorSeoSetting) GetID() uint {
-	return s.ID
 }
 
 // GetName get QorSeoSetting's name
@@ -170,7 +167,7 @@ func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 			collection.SettingResource = res.GetAdmin().AddResource(&QorSeoSetting{}, &admin.Config{Invisible: true})
 		}
 		collection.SettingResource.UseTheme("seo")
-		collection.SettingResource.EditAttrs("ID", "Name", "Setting")
+		collection.SettingResource.EditAttrs("Name", "Setting")
 		nameMeta := collection.SettingResource.GetMetaOrNew("Name")
 		nameMeta.Type = "hidden"
 		globalSettingRes := Admin.AddResource(collection.globalSetting, &admin.Config{Invisible: true})
