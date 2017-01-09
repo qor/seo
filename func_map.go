@@ -31,7 +31,7 @@ func seoSettingMetas(collection *Collection) []*admin.Section {
 func seoGlobalSetting(context *admin.Context, collection *Collection) interface{} {
 	s := collection.SettingResource.NewStruct()
 	db := context.GetDB()
-	db.Where("is_global_seo = ? and name = ?", true, collection.GlobalSettingName).First(s)
+	db.Where("is_global_seo = ? AND name = ?", true, collection.GlobalSettingName).First(s)
 	if db.NewRecord(s) {
 		s.(QorSeoSettingInterface).SetName(collection.GlobalSettingName)
 		s.(QorSeoSettingInterface).SetSeoType(collection.GlobalSettingName)

@@ -236,7 +236,7 @@ func (collection Collection) Render(context *qor.Context, name string, objects .
 		tagValues = make(map[string]string)
 	}
 	s := collection.SettingResource.NewStruct()
-	db.Where("is_global_seo = ?", true).First(s)
+	db.Where("is_global_seo = ? AND name = ?", true, collection.GlobalSettingName).First(s)
 	for k, v := range s.(QorSeoSettingInterface).GetGlobalSetting() {
 		if tagValues[k] == "" {
 			tagValues[k] = v
