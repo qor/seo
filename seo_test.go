@@ -144,15 +144,10 @@ func TestSeoGlobalSetting(t *testing.T) {
 
 func TestSeoGlobalSettingValue(t *testing.T) {
 	setupSeoCollection()
-	globalSettingValues := make(map[string]string)
-	globalSettingValues["SiteName"] = "New Site Name"
-	globalSettingValues["BrandName"] = "New Brand Name"
-	globalSetting := seoGlobalSettingValue(collection, globalSettingValues)
+	setting := createGlobalSetting("New Site Name")
+	globalSetting := seoGlobalSettingValue(collection, setting)
 	if globalSetting.(SeoGlobalSetting).SiteName != "New Site Name" {
 		t.Errorf(color.RedString("\nSeoGlobalSettingValue TestCase #1: value doesn't be set"))
-	}
-	if globalSetting.(SeoGlobalSetting).BrandName != "New Brand Name" {
-		t.Errorf(color.RedString("\nSeoGlobalSettingValue TestCase #2: value doesn't be set"))
 	}
 }
 
@@ -252,7 +247,7 @@ func setupSeoCollection() {
 	Admin.MountTo("/admin", http.NewServeMux())
 }
 
-func createGlobalSetting(siteName string) {
+func createGlobalSetting(siteName string) *QorSeoSetting {
 	globalSeoSetting := QorSeoSetting{}
 	db.Where("name = ?", "Seo").Find(&globalSeoSetting)
 	globalSetting := make(map[string]string)
@@ -265,6 +260,7 @@ func createGlobalSetting(siteName string) {
 	} else {
 		db.Save(&globalSeoSetting)
 	}
+	return &globalSeoSetting
 }
 
 func createCategoryPageSetting(setting Setting) {

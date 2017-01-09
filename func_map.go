@@ -41,12 +41,13 @@ func seoGlobalSetting(context *admin.Context, collection *Collection) interface{
 	return s
 }
 
-func seoGlobalSettingValue(collection *Collection, setting map[string]string) interface{} {
-	value := reflect.Indirect(reflect.ValueOf(collection.globalSetting))
+func seoGlobalSettingValue(collection *Collection, setting QorSeoSettingInterface) interface{} {
+	value := reflect.Indirect(reflect.ValueOf(collection.globalResource.NewStruct()))
+	settingValue := setting.GetGlobalSetting()
 	for i := 0; i < value.NumField(); i++ {
 		fieldName := value.Type().Field(i).Name
-		if setting[fieldName] != "" {
-			value.Field(i).SetString(setting[fieldName])
+		if settingValue[fieldName] != "" {
+			value.Field(i).Set(reflect.ValueOf(settingValue[fieldName]))
 		}
 	}
 	return value.Interface()
