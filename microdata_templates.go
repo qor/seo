@@ -1,7 +1,7 @@
 package seo
 
 var (
-	productMicroDataTemplate = `
+	MicroProductTemplate = `
 	<div itemscope itemtype="http://schema.org/Product" style="display:none;">
   <span itemprop="brand">{{.BrandName}}</span>
   <span itemprop="name">{{.Name}}</span>
@@ -24,7 +24,7 @@ var (
 	</div>
 	`
 
-	contactMicroDataTemplate = `
+	MicroContactTemplate = `
 	<script type="application/ld+json">
 	{ "@context" : "http://schema.org",
 		"@type" : "Organization",
@@ -37,7 +37,7 @@ var (
 	</script>
 	`
 
-	searchMicroDataTemplate = `
+	MicroSearchTemplate = `
 	<script type="application/ld+json">
 	{
 		"@context": "http://schema.org",

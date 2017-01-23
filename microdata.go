@@ -20,6 +20,11 @@ type MicroProduct struct {
 	SellerName      string
 }
 
+// Render render micro product structured data
+func (product MicroProduct) Render() template.HTML {
+	return renderTemplate(MicroProductTemplate, product)
+}
+
 // MicroSearch micro search definition, ref: https://developers.google.com/structured-data/slsb-overview
 // e.g.
 //   Target: https://query.example-petstore.com/search?q={keyword}
@@ -29,21 +34,9 @@ type MicroSearch struct {
 	QueryInput string
 }
 
-// MicroContact micro search definition, ref: https://developers.google.com/structured-data/customize/contact-points
-type MicroContact struct {
-	URL         string
-	Telephone   string
-	ContactType string
-}
-
-// Render render micro product structured data
-func (product MicroProduct) Render() template.HTML {
-	return renderTemplate(productMicroDataTemplate, product)
-}
-
 // Render render micro search structured data
 func (search MicroSearch) Render() template.HTML {
-	return renderTemplate(searchMicroDataTemplate, search)
+	return renderTemplate(MicroSearchTemplate, search)
 }
 
 // FormattedQueryInput format query input
@@ -54,19 +47,26 @@ func (search MicroSearch) FormattedQueryInput() string {
 	return search.QueryInput
 }
 
+// MicroContact micro search definition, ref: https://developers.google.com/structured-data/customize/contact-points
+type MicroContact struct {
+	URL         string
+	Telephone   string
+	ContactType string
+}
+
 // Render render micro contact structured data
 func (contact MicroContact) Render() template.HTML {
-	return renderTemplate(contactMicroDataTemplate, contact)
+	return renderTemplate(MicroContactTemplate, contact)
 }
 
 func renderTemplate(content string, obj interface{}) template.HTML {
-	var err error
-	if tmpl, err := template.New("").Parse(content); err == nil {
+	tmpl, err := template.New("").Parse(content)
+	if err == nil {
 		var results bytes.Buffer
 		if err = tmpl.Execute(&results, obj); err == nil {
 			return template.HTML(results.String())
 		}
-		return template.HTML(err.Error())
 	}
+
 	return template.HTML(err.Error())
 }
