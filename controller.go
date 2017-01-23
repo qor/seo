@@ -52,8 +52,10 @@ func (sc seoController) InlineEdit(context *admin.Context) {
 }
 
 func (sc seoController) Update(context *admin.Context) {
-	context = context.NewResourceContext(sc.Collection.SettingResource)
-	result := sc.Collection.SettingResource.NewStruct()
+	settingResource := sc.Collection.SettingResource
+	context = context.NewResourceContext(settingResource)
+	result := settingResource.NewStruct()
+
 	name, err := url.QueryUnescape(context.Request.Form.Get("name"))
 	if err != nil {
 		context.AddError(err)
@@ -84,7 +86,7 @@ func (sc seoController) Update(context *admin.Context) {
 	}
 
 	responder.With("html", func() {
-		http.Redirect(context.Writer, context.Request, path.Join(sc.MainResource.GetAdmin().GetRouter().Prefix, sc.MainResource.ToParam()), http.StatusFound)
+		http.Redirect(context.Writer, context.Request, path.Join(settingResource.GetAdmin().GetRouter().Prefix, settingResource.ToParam()), http.StatusFound)
 	}).With("json", func() {
 		if context.HasError() {
 			context.Writer.WriteHeader(admin.HTTPUnprocessableEntity)
