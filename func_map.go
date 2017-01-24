@@ -14,11 +14,11 @@ func seoSections(context *admin.Context, collection *Collection) []interface{} {
 		db := context.GetDB()
 		db.Where("name = ?", seo.Name).First(s)
 		if db.NewRecord(s) {
-			s.(QorSeoSettingInterface).SetName(seo.Name)
-			s.(QorSeoSettingInterface).SetSeoType(seo.Name)
+			s.(QorSEOSettingInterface).SetName(seo.Name)
+			s.(QorSEOSettingInterface).SetSEOType(seo.Name)
 			db.Save(s)
 		}
-		s.(QorSeoSettingInterface).SetCollection(collection)
+		s.(QorSEOSettingInterface).SetCollection(collection)
 		settings = append(settings, s)
 	}
 	return settings
@@ -33,15 +33,15 @@ func seoGlobalSetting(context *admin.Context, collection *Collection) interface{
 	db := context.GetDB()
 	db.Where("is_global_seo = ? AND name = ?", true, collection.Name).First(s)
 	if db.NewRecord(s) {
-		s.(QorSeoSettingInterface).SetName(collection.Name)
-		s.(QorSeoSettingInterface).SetSeoType(collection.Name)
-		s.(QorSeoSettingInterface).SetIsGlobalSeo(true)
+		s.(QorSEOSettingInterface).SetName(collection.Name)
+		s.(QorSEOSettingInterface).SetSEOType(collection.Name)
+		s.(QorSEOSettingInterface).SetIsGlobalSEO(true)
 		db.Save(s)
 	}
 	return s
 }
 
-func seoGlobalSettingValue(collection *Collection, setting QorSeoSettingInterface) interface{} {
+func seoGlobalSettingValue(collection *Collection, setting QorSEOSettingInterface) interface{} {
 	value := reflect.Indirect(reflect.ValueOf(collection.globalResource.NewStruct()))
 	settingValue := setting.GetGlobalSetting()
 	for i := 0; i < value.NumField(); i++ {
@@ -75,7 +75,7 @@ func seoAppendDefaultValue(context *admin.Context, seo *SEO, resourceSeoValue in
 	db := context.GetDB()
 	globalInteface := seo.collection.SettingResource.NewStruct()
 	db.Where("name = ?", seo.Name).First(globalInteface)
-	globalSetting := globalInteface.(QorSeoSettingInterface)
+	globalSetting := globalInteface.(QorSEOSettingInterface)
 	setting := resourceSeoValue.(Setting)
 	if !setting.EnabledCustomize && setting.Title == "" && setting.Description == "" && setting.Keywords == "" {
 		setting.Title = globalSetting.GetTitle()

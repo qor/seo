@@ -34,7 +34,10 @@ func (sc seoController) InlineEdit(context *admin.Context) {
 	}
 	context.DB.Where("name = ?", name).First(result)
 
-	result.(QorSeoSettingInterface).SetCollection(sc.Collection)
+	if seoSetting, ok := result.(QorSEOSettingInterface); ok {
+		seoSetting.SetCollection(sc.Collection)
+	}
+
 	responder.With("html", func() {
 		context.Execute("edit", struct {
 			Setting interface{}
@@ -65,8 +68,8 @@ func (sc seoController) Update(context *admin.Context) {
 		context.Request.Form["QorResource.Setting.Type"] = []string{name}
 	}
 
-	seoSettingInterface := result.(QorSeoSettingInterface)
-	if seoSettingInterface.GetIsGlobalSeo() {
+	seoSettingInterface := result.(QorSEOSettingInterface)
+	if seoSettingInterface.GetIsGlobalSEO() {
 		globalSetting := make(map[string]string)
 		for fieldWithPrefix := range context.Request.Form {
 			if strings.HasPrefix(fieldWithPrefix, "QorResource") {

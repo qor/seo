@@ -34,6 +34,14 @@ type Collection struct {
 	globalSetting  interface{}
 }
 
+// SEO represents a seo object for a page
+type SEO struct {
+	Name       string
+	Varibles   []string
+	Context    func(...interface{}) map[string]string
+	collection *Collection
+}
+
 // RegisterGlobalVaribles register global setting struct and will represents as 'Site-wide Settings' part in admin
 func (collection *Collection) RegisterGlobalVaribles(s interface{}) {
 	collection.globalSetting = s
@@ -45,22 +53,15 @@ func (collection *Collection) RegisterSEO(seo *SEO) {
 	collection.registeredSEO = append(collection.registeredSEO, seo)
 }
 
-// SEO represents a seo object for a page
-type SEO struct {
-	Name       string
-	Varibles   []string
-	Context    func(...interface{}) map[string]string
-	collection *Collection
-}
-
 // ConfigureQorResource configure seoCollection for qor admin
 func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 	if res, ok := res.(*admin.Resource); ok {
 		Admin := res.GetAdmin()
 		collection.resource = res
 		if collection.SettingResource == nil {
-			collection.SettingResource = res.GetAdmin().AddResource(&QorSeoSetting{}, &admin.Config{Invisible: true})
+			collection.SettingResource = res.GetAdmin().AddResource(&QorSEOSetting{}, &admin.Config{Invisible: true})
 		}
+
 		collection.SettingResource.UseTheme("seo")
 		collection.SettingResource.EditAttrs("Name", "Setting")
 		nameMeta := collection.SettingResource.GetMetaOrNew("Name")
@@ -116,9 +117,9 @@ func (collection Collection) Render(context *qor.Context, name string, objects .
 		description = resourceSetting.Description
 		keywords = resourceSetting.Keywords
 	} else {
-		title = shareSetting.(QorSeoSettingInterface).GetTitle()
-		description = shareSetting.(QorSeoSettingInterface).GetDescription()
-		keywords = shareSetting.(QorSeoSettingInterface).GetKeywords()
+		title = shareSetting.(QorSEOSettingInterface).GetTitle()
+		description = shareSetting.(QorSEOSettingInterface).GetDescription()
+		keywords = shareSetting.(QorSEOSettingInterface).GetKeywords()
 	}
 
 	var tagValues map[string]string
@@ -129,7 +130,7 @@ func (collection Collection) Render(context *qor.Context, name string, objects .
 	}
 	siteWideSetting := collection.SettingResource.NewStruct()
 	db.Where("is_global_seo = ? AND name = ?", true, collection.Name).First(siteWideSetting)
-	for k, v := range siteWideSetting.(QorSeoSettingInterface).GetGlobalSetting() {
+	for k, v := range siteWideSetting.(QorSEOSettingInterface).GetGlobalSetting() {
 		if tagValues[k] == "" {
 			tagValues[k] = v
 		}

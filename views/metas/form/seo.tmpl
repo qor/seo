@@ -1,7 +1,7 @@
 {{$inputName := .Meta.Name}}
 {{$labelName := .Meta.Label}}
 {{$rawValue := raw_value_of .ResourceValue .Meta}}
-{{$seo := .ResourceValue.GetSeo }}
+{{$seo := .ResourceValue.GetSEO }}
 {{$seoName := $seo.Name}}
 {{$value := seo_append_default_value .Context $seo $rawValue}}
 
