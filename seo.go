@@ -57,7 +57,7 @@ func (collection *Collection) RegisterSEO(seo *SEO) {
 func (collection Collection) Render(context *qor.Context, name string, objects ...interface{}) template.HTML {
 	var (
 		title, description, keywords string
-		resourceSetting              *Setting
+		seoField                     Setting
 		db                           = context.GetDB()
 		seo                          = collection.GetSEO(name)
 	)
@@ -69,22 +69,20 @@ func (collection Collection) Render(context *qor.Context, name string, objects .
 
 	// If passed objects has customzied SEO Setting field
 	for _, obj := range objects {
-		value := reflect.ValueOf(obj)
-		if value.IsValid() && value.Kind() == reflect.Struct {
+		if value := reflect.Indirect(reflect.ValueOf(obj)); value.IsValid() && value.Kind() == reflect.Struct {
 			for i := 0; i < value.NumField(); i++ {
 				if value.Field(i).Type() == reflect.TypeOf(Setting{}) {
-					s := value.Field(i).Interface().(Setting)
-					resourceSetting = &s
+					seoField = value.Field(i).Interface().(Setting)
 					break
 				}
 			}
 		}
 	}
 
-	if resourceSetting != nil && resourceSetting.EnabledCustomize {
-		title = resourceSetting.Title
-		description = resourceSetting.Description
-		keywords = resourceSetting.Keywords
+	if seoField.EnabledCustomize {
+		title = seoField.Title
+		description = seoField.Description
+		keywords = seoField.Keywords
 	} else {
 		seoSettingResult := collection.SettingResource.NewStruct()
 		if !db.Where("name = ?", name).First(seoSettingResult).RecordNotFound() {

@@ -30,12 +30,13 @@ type QorSEOSettingInterface interface {
 type QorSEOSetting struct {
 	Name        string `gorm:"primary_key"`
 	Setting     Setting
-	collection  *Collection
 	IsGlobalSEO bool
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt *time.Time `sql:"index"`
+	DeletedAt *time.Time `gorm:"index"`
+
+	collection *Collection
 }
 
 // Setting defined meta's attributes
@@ -120,7 +121,9 @@ func (setting *Setting) Scan(value interface{}) error {
 	} else if str, ok := value.(string); ok {
 		json.Unmarshal([]byte(str), setting)
 	} else if strs, ok := value.([]string); ok {
-		json.Unmarshal([]byte(strs[0]), setting)
+		for _, str := range strs {
+			json.Unmarshal([]byte(str), setting)
+		}
 	}
 	return nil
 }
@@ -136,6 +139,7 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 	if meta, ok := meta.(*admin.Meta); ok {
 		meta.Type = "seo"
 		res := meta.GetBaseResource().(*admin.Resource)
+
 		res.GetAdmin().RegisterFuncMap("seoType", func(value interface{}, meta admin.Meta) string {
 			typeFromTag := meta.FieldStruct.Struct.Tag.Get("seo")
 			typeFromTag = utils.ParseTagOption(typeFromTag)["TYPE"]
@@ -144,6 +148,7 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 			}
 			return value.(Setting).Type
 		})
+
 		res.UseTheme("seo_meta")
 	}
 }
