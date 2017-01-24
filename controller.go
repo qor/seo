@@ -45,7 +45,7 @@ func (sc seoController) InlineEdit(context *admin.Context) {
 			Metas   []*admin.Section
 		}{
 			Setting: result,
-			EditURL: sc.Collection.SeoSettingURL(name),
+			EditURL: sc.Collection.SEOSettingURL(name),
 			Metas:   seoSettingMetas(sc.Collection),
 		})
 	}).With("json", func() {

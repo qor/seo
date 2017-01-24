@@ -86,7 +86,7 @@ func seoAppendDefaultValue(context *admin.Context, seo *SEO, resourceSeoValue in
 }
 
 func seoURL(collection *Collection, name string) string {
-	return collection.SeoSettingURL(name)
+	return collection.SEOSettingURL(name)
 }
 
 func registerFuncMap(a *admin.Admin) {

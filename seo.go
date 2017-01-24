@@ -53,47 +53,24 @@ func (collection *Collection) RegisterSEO(seo *SEO) {
 	collection.registeredSEO = append(collection.registeredSEO, seo)
 }
 
-// ConfigureQorResource configure seoCollection for qor admin
-func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
-	if res, ok := res.(*admin.Resource); ok {
-		Admin := res.GetAdmin()
-		collection.resource = res
-		if collection.SettingResource == nil {
-			collection.SettingResource = res.GetAdmin().AddResource(&QorSEOSetting{}, &admin.Config{Invisible: true})
-		}
-
-		collection.SettingResource.UseTheme("seo")
-		collection.SettingResource.EditAttrs("Name", "Setting")
-		nameMeta := collection.SettingResource.GetMetaOrNew("Name")
-		nameMeta.Type = "hidden"
-		globalSettingRes := Admin.AddResource(collection.globalSetting, &admin.Config{Invisible: true})
-		collection.globalResource = globalSettingRes
-
-		res.Config.Singleton = true
-		res.UseTheme("seo")
-		router := Admin.GetRouter()
-		controller := seoController{Collection: collection}
-		router.Get(res.ToParam(), controller.Index)
-		router.Put(fmt.Sprintf("%v/!seo_setting", res.ToParam()), controller.Update)
-		router.Get(fmt.Sprintf("%v/!seo_setting", res.ToParam()), controller.InlineEdit)
-
-		registerFuncMap(Admin)
-	}
-}
-
 // Render render SEO Setting
 func (collection Collection) Render(context *qor.Context, name string, objects ...interface{}) template.HTML {
 	var (
-		title           string
-		description     string
-		keywords        string
-		resourceSetting *Setting
+		title, description, keywords string
+		resourceSetting              *Setting
+		db                           = context.GetDB()
+		seo                          = collection.GetSEO(name)
 	)
 
-	db := context.GetDB()
+	if seo == nil {
+		utils.ExitWithMsg(fmt.Printf("SEO: Can't find seo with name %v", name))
+		return ""
+	}
+
+	// If passed objects has customzied SEO Setting field
 	for _, obj := range objects {
 		value := reflect.ValueOf(obj)
-		if value.IsValid() && value.Kind().String() == "struct" {
+		if value.IsValid() && value.Kind() == reflect.Struct {
 			for i := 0; i < value.NumField(); i++ {
 				if value.Field(i).Type() == reflect.TypeOf(Setting{}) {
 					s := value.Field(i).Interface().(Setting)
@@ -104,37 +81,31 @@ func (collection Collection) Render(context *qor.Context, name string, objects .
 		}
 	}
 
-	shareSetting := collection.SettingResource.NewStruct()
-	db.Where("name = ?", name).First(shareSetting)
-	seo := collection.GetSEO(name)
-	if seo == nil {
-		utils.ExitWithMsg(fmt.Printf("SEO: Can't find seo with name %v", name))
-		return ""
-	}
-
 	if resourceSetting != nil && resourceSetting.EnabledCustomize {
 		title = resourceSetting.Title
 		description = resourceSetting.Description
 		keywords = resourceSetting.Keywords
 	} else {
-		title = shareSetting.(QorSEOSettingInterface).GetTitle()
-		description = shareSetting.(QorSEOSettingInterface).GetDescription()
-		keywords = shareSetting.(QorSEOSettingInterface).GetKeywords()
-	}
-
-	var tagValues map[string]string
-	if seo.Context != nil {
-		tagValues = seo.Context(objects...)
-	} else {
-		tagValues = make(map[string]string)
-	}
-	siteWideSetting := collection.SettingResource.NewStruct()
-	db.Where("is_global_seo = ? AND name = ?", true, collection.Name).First(siteWideSetting)
-	for k, v := range siteWideSetting.(QorSEOSettingInterface).GetGlobalSetting() {
-		if tagValues[k] == "" {
-			tagValues[k] = v
+		seoSettingResult := collection.SettingResource.NewStruct()
+		if !db.Where("name = ?", name).First(seoSettingResult).RecordNotFound() {
+			if seoSetting, ok := seoSettingResult.(QorSEOSettingInterface); ok {
+				title = seoSetting.GetTitle()
+				description = seoSetting.GetDescription()
+				keywords = seoSetting.GetKeywords()
+			}
 		}
 	}
+
+	siteWideSetting := collection.SettingResource.NewStruct()
+	db.Where("is_global_seo = ? AND name = ?", true, collection.Name).First(siteWideSetting)
+	tagValues := siteWideSetting.(QorSEOSettingInterface).GetGlobalSetting()
+
+	if seo.Context != nil {
+		for key, value := range seo.Context(objects...) {
+			tagValues[key] = value
+		}
+	}
+
 	title = replaceTags(title, seo.Varibles, tagValues)
 	description = replaceTags(description, seo.Varibles, tagValues)
 	keywords = replaceTags(keywords, seo.Varibles, tagValues)
@@ -153,9 +124,40 @@ func (collection *Collection) GetSEO(name string) *SEO {
 }
 
 // SeoSettingURL get setting inline edit url by name
-func (collection *Collection) SeoSettingURL(name string) string {
+func (collection *Collection) SEOSettingURL(name string) string {
 	qorAdmin := collection.resource.GetAdmin()
 	return fmt.Sprintf("%v/%v/!seo_setting?name=%v", qorAdmin.GetRouter().Prefix, collection.resource.ToParam(), url.QueryEscape(name))
+}
+
+// ConfigureQorResource configure seoCollection for qor admin
+func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
+	if res, ok := res.(*admin.Resource); ok {
+		Admin := res.GetAdmin()
+		collection.resource = res
+		if collection.SettingResource == nil {
+			collection.SettingResource = Admin.AddResource(&QorSEOSetting{}, &admin.Config{Invisible: true})
+		}
+
+		collection.SettingResource.UseTheme("seo")
+		collection.SettingResource.EditAttrs("Name", "Setting")
+		if nameMeta := collection.SettingResource.GetMetaOrNew("Name"); nameMeta != nil {
+			nameMeta.Type = "hidden"
+		}
+
+		globalSettingRes := Admin.AddResource(collection.globalSetting, &admin.Config{Invisible: true})
+		collection.globalResource = globalSettingRes
+
+		res.Config.Singleton = true
+		res.UseTheme("seo")
+
+		router := Admin.GetRouter()
+		controller := seoController{Collection: collection}
+		router.Get(res.ToParam(), controller.Index)
+		router.Put(fmt.Sprintf("%v/!seo_setting", res.ToParam()), controller.Update)
+		router.Get(fmt.Sprintf("%v/!seo_setting", res.ToParam()), controller.InlineEdit)
+
+		registerFuncMap(Admin)
+	}
 }
 
 // Helpers
