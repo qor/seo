@@ -11,8 +11,7 @@ import (
 )
 
 type seoController struct {
-	Collection   *Collection
-	MainResource *admin.Resource
+	Collection *Collection
 }
 
 func (sc seoController) Index(context *admin.Context) {

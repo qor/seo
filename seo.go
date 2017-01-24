@@ -20,17 +20,18 @@ func init() {
 
 // New initialize a SeoCollection instance
 func New(name string) *Collection {
-	return &Collection{GlobalSettingName: name}
+	return &Collection{Name: name}
 }
 
 // Collection will hold registered seo configures and global setting definition and other configures
 type Collection struct {
-	SettingResource   *admin.Resource
-	GlobalSettingName string
-	registeredSeo     []*SEO
-	globalSetting     interface{}
-	resource          *admin.Resource
-	globalResource    *admin.Resource
+	Name            string
+	SettingResource *admin.Resource
+
+	registeredSeo  []*SEO
+	resource       *admin.Resource
+	globalResource *admin.Resource
+	globalSetting  interface{}
 }
 
 // SEO represents a seo object for a page
@@ -70,7 +71,7 @@ func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 		res.Config.Singleton = true
 		res.UseTheme("seo")
 		router := Admin.GetRouter()
-		controller := seoController{Collection: collection, MainResource: res}
+		controller := seoController{Collection: collection}
 		router.Get(res.ToParam(), controller.Index)
 		router.Put(fmt.Sprintf("%v/!seo_setting", res.ToParam()), controller.Update)
 		router.Get(fmt.Sprintf("%v/!seo_setting", res.ToParam()), controller.InlineEdit)
@@ -127,7 +128,7 @@ func (collection Collection) Render(context *qor.Context, name string, objects .
 		tagValues = make(map[string]string)
 	}
 	siteWideSetting := collection.SettingResource.NewStruct()
-	db.Where("is_global_seo = ? AND name = ?", true, collection.GlobalSettingName).First(siteWideSetting)
+	db.Where("is_global_seo = ? AND name = ?", true, collection.Name).First(siteWideSetting)
 	for k, v := range siteWideSetting.(QorSeoSettingInterface).GetGlobalSetting() {
 		if tagValues[k] == "" {
 			tagValues[k] = v
