@@ -9,7 +9,7 @@ import (
 
 func seoSections(context *admin.Context, collection *Collection) []interface{} {
 	settings := []interface{}{}
-	for _, seo := range collection.registeredSeo {
+	for _, seo := range collection.registeredSEO {
 		s := collection.SettingResource.NewStruct()
 		db := context.GetDB()
 		db.Where("name = ?", seo.Name).First(s)

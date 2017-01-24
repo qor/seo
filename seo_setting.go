@@ -109,8 +109,8 @@ func (s *QorSeoSetting) SetCollection(collection *Collection) {
 }
 
 // GetSeo get Setting's SEO configure
-func (s QorSeoSetting) GetSeo() *SEO {
-	return s.collection.GetSeo(s.Name)
+func (s QorSeoSetting) GetSEO() *SEO {
+	return s.collection.GetSEO(s.Name)
 }
 
 // Scan scan value from database into struct

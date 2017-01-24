@@ -28,10 +28,21 @@ type Collection struct {
 	Name            string
 	SettingResource *admin.Resource
 
-	registeredSeo  []*SEO
+	registeredSEO  []*SEO
 	resource       *admin.Resource
 	globalResource *admin.Resource
 	globalSetting  interface{}
+}
+
+// RegisterGlobalVaribles register global setting struct and will represents as 'Site-wide Settings' part in admin
+func (collection *Collection) RegisterGlobalVaribles(s interface{}) {
+	collection.globalSetting = s
+}
+
+// RegisterSEO register a seo
+func (collection *Collection) RegisterSEO(seo *SEO) {
+	seo.collection = collection
+	collection.registeredSEO = append(collection.registeredSEO, seo)
 }
 
 // SEO represents a seo object for a page
@@ -40,17 +51,6 @@ type SEO struct {
 	Varibles   []string
 	Context    func(...interface{}) map[string]string
 	collection *Collection
-}
-
-// RegisterGlobalVaribles register global setting and will represents as 'Site-wide Settings' part in admin
-func (collection *Collection) RegisterGlobalVaribles(s interface{}) {
-	collection.globalSetting = s
-}
-
-// RegisterSeo register a seo
-func (collection *Collection) RegisterSeo(seo *SEO) {
-	seo.collection = collection
-	collection.registeredSeo = append(collection.registeredSeo, seo)
 }
 
 // ConfigureQorResource configure seoCollection for qor admin
@@ -105,7 +105,7 @@ func (collection Collection) Render(context *qor.Context, name string, objects .
 
 	shareSetting := collection.SettingResource.NewStruct()
 	db.Where("name = ?", name).First(shareSetting)
-	seo := collection.GetSeo(name)
+	seo := collection.GetSEO(name)
 	if seo == nil {
 		utils.ExitWithMsg(fmt.Printf("SEO: Can't find seo with name %v", name))
 		return ""
@@ -141,15 +141,14 @@ func (collection Collection) Render(context *qor.Context, name string, objects .
 }
 
 // GetSeo get a Seo by name
-func (collection *Collection) GetSeo(name string) *SEO {
-	for _, s := range collection.registeredSeo {
+func (collection *Collection) GetSEO(name string) *SEO {
+	for _, s := range collection.registeredSEO {
 		if s.Name == name {
 			return s
 		}
 	}
-	newSeo := &SEO{Name: name}
-	newSeo.collection = collection
-	return newSeo
+
+	return &SEO{Name: name, collection: collection}
 }
 
 // SeoSettingURL get setting inline edit url by name

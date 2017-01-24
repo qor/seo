@@ -162,7 +162,7 @@ func TestSeoAppendDefaultValue(t *testing.T) {
 	}
 	for i, testCase := range testCases {
 		category := Category{SEO: Setting{Title: testCase.CatTitle, Description: testCase.CatDescription, Keywords: testCase.CatKeywords, EnabledCustomize: testCase.CatEnabledCustomize}}
-		seo := collection.GetSeo("CategoryPage")
+		seo := collection.GetSEO("CategoryPage")
 		setting := seoAppendDefaultValue(&admin.Context{Context: &qor.Context{DB: db}}, seo, category.SEO).(Setting)
 		var hasError bool
 		if setting.Title != testCase.ExpectTitle {
@@ -185,7 +185,7 @@ func TestSeoAppendDefaultValue(t *testing.T) {
 
 func TestSeoTagsByType(t *testing.T) {
 	setupSeoCollection()
-	seo := collection.GetSeo("CategoryPage")
+	seo := collection.GetSEO("CategoryPage")
 	validTags := seoTagsByType(seo)
 	tags := []string{"SiteName", "BrandName", "Name", "URLTitle"}
 	if strings.Join(validTags, ",") != strings.Join(tags, ",") {
@@ -221,10 +221,10 @@ func setupSeoCollection() {
 	db.AutoMigrate(&QorSeoSetting{})
 	collection = New("Seo")
 	collection.RegisterGlobalVaribles(&SeoGlobalSetting{SiteName: "Qor SEO", BrandName: "Qor"})
-	collection.RegisterSeo(&SEO{
+	collection.RegisterSEO(&SEO{
 		Name: "DefaultPage",
 	})
-	collection.RegisterSeo(&SEO{
+	collection.RegisterSEO(&SEO{
 		Name:     "CategoryPage",
 		Varibles: []string{"Name", "URLTitle"},
 		Context: func(objects ...interface{}) (context map[string]string) {
