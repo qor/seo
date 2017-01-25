@@ -7,7 +7,6 @@ import (
 
 	"github.com/qor/admin"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/utils"
 )
 
 // QorSeoSettingInterface support customize Seo model
@@ -138,17 +137,8 @@ func (setting Setting) Value() (driver.Value, error) {
 func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 	if meta, ok := meta.(*admin.Meta); ok {
 		meta.Type = "seo"
-		res := meta.GetBaseResource().(*admin.Resource)
-
-		res.GetAdmin().RegisterFuncMap("seoType", func(value interface{}, meta admin.Meta) string {
-			typeFromTag := meta.FieldStruct.Struct.Tag.Get("seo")
-			typeFromTag = utils.ParseTagOption(typeFromTag)["TYPE"]
-			if typeFromTag != "" {
-				return typeFromTag
-			}
-			return value.(Setting).Type
-		})
-
-		res.UseTheme("seo_meta")
+		if res, ok := meta.GetBaseResource().(*admin.Resource); ok {
+			res.UseTheme("seo_meta")
+		}
 	}
 }
