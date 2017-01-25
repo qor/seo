@@ -11,8 +11,7 @@ import (
 )
 
 type seoController struct {
-	Collection   *Collection
-	MainResource *admin.Resource
+	Collection *Collection
 }
 
 func (sc seoController) Index(context *admin.Context) {
@@ -35,7 +34,10 @@ func (sc seoController) InlineEdit(context *admin.Context) {
 	}
 	context.DB.Where("name = ?", name).First(result)
 
-	result.(QorSeoSettingInterface).SetCollection(sc.Collection)
+	if seoSetting, ok := result.(QorSEOSettingInterface); ok {
+		seoSetting.SetCollection(sc.Collection)
+	}
+
 	responder.With("html", func() {
 		context.Execute("edit", struct {
 			Setting interface{}
@@ -43,7 +45,7 @@ func (sc seoController) InlineEdit(context *admin.Context) {
 			Metas   []*admin.Section
 		}{
 			Setting: result,
-			EditURL: sc.Collection.SeoSettingURL(name),
+			EditURL: sc.Collection.SEOSettingURL(name),
 			Metas:   seoSettingMetas(sc.Collection),
 		})
 	}).With("json", func() {
@@ -66,8 +68,8 @@ func (sc seoController) Update(context *admin.Context) {
 		context.Request.Form["QorResource.Setting.Type"] = []string{name}
 	}
 
-	seoSettingInterface := result.(QorSeoSettingInterface)
-	if seoSettingInterface.GetIsGlobalSeo() {
+	seoSettingInterface := result.(QorSEOSettingInterface)
+	if seoSettingInterface.GetIsGlobalSEO() {
 		globalSetting := make(map[string]string)
 		for fieldWithPrefix := range context.Request.Form {
 			if strings.HasPrefix(fieldWithPrefix, "QorResource") {

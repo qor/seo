@@ -11,15 +11,15 @@ import (
 )
 
 // QorSeoSettingInterface support customize Seo model
-type QorSeoSettingInterface interface {
+type QorSEOSettingInterface interface {
 	GetName() string
 	SetName(string)
 	GetGlobalSetting() map[string]string
 	SetGlobalSetting(map[string]string)
-	GetSeoType() string
-	SetSeoType(string)
-	GetIsGlobalSeo() bool
-	SetIsGlobalSeo(bool)
+	GetSEOType() string
+	SetSEOType(string)
+	GetIsGlobalSEO() bool
+	SetIsGlobalSEO(bool)
 	GetTitle() string
 	GetDescription() string
 	GetKeywords() string
@@ -27,15 +27,16 @@ type QorSeoSettingInterface interface {
 }
 
 // QorSeoSetting default seo model
-type QorSeoSetting struct {
+type QorSEOSetting struct {
 	Name        string `gorm:"primary_key"`
 	Setting     Setting
-	collection  *Collection
-	IsGlobalSeo bool
+	IsGlobalSEO bool
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt *time.Time `sql:"index"`
+	DeletedAt *time.Time `gorm:"index"`
+
+	collection *Collection
 }
 
 // Setting defined meta's attributes
@@ -49,68 +50,68 @@ type Setting struct {
 }
 
 // GetName get QorSeoSetting's name
-func (s QorSeoSetting) GetName() string {
+func (s QorSEOSetting) GetName() string {
 	return s.Name
 }
 
 // SetName set QorSeoSetting's name
-func (s *QorSeoSetting) SetName(name string) {
+func (s *QorSEOSetting) SetName(name string) {
 	s.Name = name
 }
 
 // GetSeoType get QorSeoSetting's type
-func (s QorSeoSetting) GetSeoType() string {
+func (s QorSEOSetting) GetSEOType() string {
 	return s.Setting.Type
 }
 
 // SetSeoType set QorSeoSetting's type
-func (s *QorSeoSetting) SetSeoType(t string) {
+func (s *QorSEOSetting) SetSEOType(t string) {
 	s.Setting.Type = t
 }
 
 // GetIsGlobalSeo get QorSeoSetting's isGlobal
-func (s QorSeoSetting) GetIsGlobalSeo() bool {
-	return s.IsGlobalSeo
+func (s QorSEOSetting) GetIsGlobalSEO() bool {
+	return s.IsGlobalSEO
 }
 
 // SetIsGlobalSeo set QorSeoSetting's isGlobal
-func (s *QorSeoSetting) SetIsGlobalSeo(isGlobal bool) {
-	s.IsGlobalSeo = isGlobal
+func (s *QorSEOSetting) SetIsGlobalSEO(isGlobal bool) {
+	s.IsGlobalSEO = isGlobal
 }
 
 // GetGlobalSetting get QorSeoSetting's globalSetting
-func (s QorSeoSetting) GetGlobalSetting() map[string]string {
+func (s QorSEOSetting) GetGlobalSetting() map[string]string {
 	return s.Setting.GlobalSetting
 }
 
 // SetGlobalSetting set QorSeoSetting's globalSetting
-func (s *QorSeoSetting) SetGlobalSetting(globalSetting map[string]string) {
+func (s *QorSEOSetting) SetGlobalSetting(globalSetting map[string]string) {
 	s.Setting.GlobalSetting = globalSetting
 }
 
 // GetTitle get Setting's title
-func (s QorSeoSetting) GetTitle() string {
+func (s QorSEOSetting) GetTitle() string {
 	return s.Setting.Title
 }
 
 // GetDescription get Setting's description
-func (s QorSeoSetting) GetDescription() string {
+func (s QorSEOSetting) GetDescription() string {
 	return s.Setting.Description
 }
 
 // GetKeywords get Setting's keywords
-func (s QorSeoSetting) GetKeywords() string {
+func (s QorSEOSetting) GetKeywords() string {
 	return s.Setting.Keywords
 }
 
 // SetCollection set Setting's collection
-func (s *QorSeoSetting) SetCollection(collection *Collection) {
+func (s *QorSEOSetting) SetCollection(collection *Collection) {
 	s.collection = collection
 }
 
 // GetSeo get Setting's SEO configure
-func (s QorSeoSetting) GetSeo() *SEO {
-	return s.collection.GetSeo(s.Name)
+func (s QorSEOSetting) GetSEO() *SEO {
+	return s.collection.GetSEO(s.Name)
 }
 
 // Scan scan value from database into struct
@@ -120,7 +121,9 @@ func (setting *Setting) Scan(value interface{}) error {
 	} else if str, ok := value.(string); ok {
 		json.Unmarshal([]byte(str), setting)
 	} else if strs, ok := value.([]string); ok {
-		json.Unmarshal([]byte(strs[0]), setting)
+		for _, str := range strs {
+			json.Unmarshal([]byte(str), setting)
+		}
 	}
 	return nil
 }
@@ -136,6 +139,7 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 	if meta, ok := meta.(*admin.Meta); ok {
 		meta.Type = "seo"
 		res := meta.GetBaseResource().(*admin.Resource)
+
 		res.GetAdmin().RegisterFuncMap("seoType", func(value interface{}, meta admin.Meta) string {
 			typeFromTag := meta.FieldStruct.Struct.Tag.Get("seo")
 			typeFromTag = utils.ParseTagOption(typeFromTag)["TYPE"]
@@ -144,6 +148,7 @@ func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 			}
 			return value.(Setting).Type
 		})
+
 		res.UseTheme("seo_meta")
 	}
 }
