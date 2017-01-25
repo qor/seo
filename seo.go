@@ -11,7 +11,6 @@ import (
 	"github.com/qor/admin"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/utils"
 )
 
 func init() {
@@ -62,11 +61,6 @@ func (collection Collection) Render(context *qor.Context, name string, objects .
 		seo                          = collection.GetSEO(name)
 	)
 
-	if seo == nil {
-		utils.ExitWithMsg(fmt.Printf("SEO: Can't find seo with name %v", name))
-		return ""
-	}
-
 	// If passed objects has customzied SEO Setting field
 	for _, obj := range objects {
 		if value := reflect.Indirect(reflect.ValueOf(obj)); value.IsValid() && value.Kind() == reflect.Struct {
@@ -84,13 +78,11 @@ func (collection Collection) Render(context *qor.Context, name string, objects .
 		description = seoField.Description
 		keywords = seoField.Keywords
 	} else {
-		seoSettingResult := collection.SettingResource.NewStruct()
-		if !db.Where("name = ?", name).First(seoSettingResult).RecordNotFound() {
-			if seoSetting, ok := seoSettingResult.(QorSEOSettingInterface); ok {
-				title = seoSetting.GetTitle()
-				description = seoSetting.GetDescription()
-				keywords = seoSetting.GetKeywords()
-			}
+		seoSetting := collection.SettingResource.NewStruct().(QorSEOSettingInterface)
+		if !db.Where("name = ?", name).First(seoSetting).RecordNotFound() {
+			title = seoSetting.GetTitle()
+			description = seoSetting.GetDescription()
+			keywords = seoSetting.GetKeywords()
 		}
 	}
 
