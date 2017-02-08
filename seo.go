@@ -90,6 +90,10 @@ func (collection Collection) Render(context *qor.Context, name string, objects .
 	db.Where("is_global_seo = ? AND name = ?", true, collection.Name).First(siteWideSetting)
 	tagValues := siteWideSetting.(QorSEOSettingInterface).GetGlobalSetting()
 
+	if tagValues == nil {
+		tagValues = map[string]string{}
+	}
+
 	if seo.Context != nil {
 		for key, value := range seo.Context(objects...) {
 			tagValues[key] = value
