@@ -12,6 +12,7 @@ _test
 [568vq].out
 
 .sass-cache/
+node_modules/
 *.css.map
 
 *.cgo1.go
