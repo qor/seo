@@ -33,7 +33,7 @@
 
     <div class="qor-field">
       <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
-        <input class="qor-seo-input-field qor-seo-description-field mdl-textfield__input" type="text" id="{{.InputId}}_Description" name="{{.InputName}}.Description" {{if $value}}value="{{$value.Description}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+        <textarea class="qor-seo-input-field qor-seo-description-field mdl-textfield__input" type="text" id="{{.InputId}}_Description" name="{{.InputName}}.Description" {{if not (has_update_permission .Meta)}}disabled{{end}}>{{if $value}}{{$value.Description}}{{end}}</textarea>
         <label class="mdl-textfield__label" for="{{.InputId}}_Description">{{t (printf "%v.description" .BaseResource.ToParam) "Meta Description"}}</label>
       </div>
     </div>
