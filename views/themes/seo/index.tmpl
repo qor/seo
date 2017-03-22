@@ -28,7 +28,7 @@
   </div>
 
   <div class="qor-page__col-right">
-    <div class="qor-form-container qor-seo" data-toggle="qor.seo">
+    <div class="qor-form-container qor-seo qor-fieldset" data-toggle="qor.seo">
       <form class="qor-form" action="{{seo_url_for $collection $seo_global_setting.Name}}" method="POST" enctype="multipart/form-data">
         <input name="_method" value="PUT" type="hidden">
         {{render_form (seo_global_setting_value $collection $seo_global_setting) (seo_global_setting_metas $collection)}}
@@ -54,7 +54,7 @@
       <div class="qor-seo" data-toggle="qor.seo">
         <form class="qor-form" action="{{seo_url_for $collection .Name }}" method="POST" enctype="multipart/form-data">
           <input name="_method" value="PUT" type="hidden">
-          <div class="qor-form-container">
+          <div class="qor-form-container qor-fieldset">
             {{render_form . (seo_setting_metas $collection)}}
             <div class="qor-form__actions">
               <button class="qor-seo-submit mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit" data-upgraded=",MaterialButton,MaterialRipple">{{t "qor_admin.form.save_changes" "Save Changes"}}<span class="mdl-button__ripple-container"><span class="mdl-ripple"></span></span></button>
