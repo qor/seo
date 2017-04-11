@@ -1,4 +1,4 @@
-(function (factory) {
+(function(factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as anonymous module.
         define(['jquery'], factory);
@@ -9,7 +9,7 @@
         // Browser globals.
         factory(jQuery);
     }
-})(function ($) {
+})(function($) {
     "use script";
 
     var NAMESPACE = 'qor.seo';
@@ -34,7 +34,7 @@
 
         constructor: QorSeo,
 
-        init: function () {
+        init: function() {
             var $element = this.$element;
 
             this.$submit = $element.find(CLASS_SUBMIT);
@@ -44,7 +44,7 @@
             this.bind();
         },
 
-        bind: function () {
+        bind: function() {
             this.$submit.on(EVENT_CLICK, $.proxy(this.submitSeo, this));
             this.$tagInputs.on('click keyup', $.proxy(this.tagInputsFocus, this));
             this.$tagInputs.on(EVENT_BLUR, $.proxy(this.tagInputsBlur, this));
@@ -52,7 +52,7 @@
             this.$addTgas.on(EVENT_CLICK, $.proxy(this.addTags, this));
         },
 
-        unbind: function () {
+        unbind: function() {
             this.$submit.off(EVENT_CLICK, $.proxy(this.submitSeo, this));
             this.$tagInputs.off('click keyup', $.proxy(this.tagInputsFocus, this));
             this.$tagInputs.off(EVENT_BLUR, $.proxy(this.tagInputsBlur, this));
@@ -60,14 +60,14 @@
             this.$addTgas.off(EVENT_CLICK, $.proxy(this.addTags, this));
         },
 
-        toggleDefault: function () {
+        toggleDefault: function() {
             var isChecked = this.$settingInput.is(':checked'),
                 $settings = $(CLASS_SETTINGS);
 
             isChecked ? $settings.hide() : $settings.show();
         },
 
-        tagInputsFocus: function () {
+        tagInputsFocus: function() {
             this.$addTgas.addClass('focus');
             var $focusedInput = $(document.activeElement);
 
@@ -77,12 +77,12 @@
             this.focusedInputVal = $focusedInput.val();
         },
 
-        tagInputsBlur: function () {
+        tagInputsBlur: function() {
             this.$addTgas.removeClass('focus');
             this.$focusedInputID = false;
         },
 
-        addTags: function (e) {
+        addTags: function(e) {
             if (!this.focusedInputID) {
                 return;
             }
@@ -96,7 +96,7 @@
             $("#" + this.focusedInputID).val(newVal).focus();
         },
 
-        submitSeo: function () {
+        submitSeo: function() {
             var $element = this.$element,
                 $form = $element.find(".qor-form");
 
@@ -107,25 +107,26 @@
             $.ajax({
                 type: "POST",
                 url: $form.attr("action"),
-                data: $form.serialize(),
+                data: new FormData($form[0]),
+                processData: false,
+                contentType: false,
                 dataType: 'json',
-                success: function (data) {
+                success: function() {
                     window.onbeforeunload = null;
                     $.fn.qorSlideoutBeforeHide = null;
-                    console.log(data);
-                    $('.qor-alert--success').show().addClass('');
-                    setTimeout(function () {
+                    $('.qor-alert--success').show();
+                    setTimeout(function() {
                         $('.qor-alert--success').hide();
-                    }, 5000);
+                    }, 3000);
                 },
-                error: function () {
+                error: function() {
                     $('.qor-alert--error').show();
                 }
             });
             return false;
         },
 
-        destroy: function () {
+        destroy: function() {
             this.unbind();
             this.$element.removeData(NAMESPACE);
         }
@@ -133,8 +134,8 @@
 
     QorSeo.DEFAULTS = {};
 
-    QorSeo.plugin = function (options) {
-        return this.each(function () {
+    QorSeo.plugin = function(options) {
+        return this.each(function() {
             var $this = $(this);
             var data = $this.data(NAMESPACE);
             var fn;
@@ -153,18 +154,18 @@
         });
     };
 
-    $(function () {
+    $(function() {
         var selector = '[data-toggle="qor.seo"]',
             options = {};
 
         $(document).
-        on('click.qor.fixedAlert', '[data-dismiss="fixed-alert"]', function () {
+        on('click.qor.fixedAlert', '[data-dismiss="fixed-alert"]', function() {
             $(this).closest('.qor-alert').hide();
         }).
-        on(EVENT_DISABLE, function (e) {
+        on(EVENT_DISABLE, function(e) {
             QorSeo.plugin.call($(selector, e.target), 'destroy');
         }).
-        on(EVENT_ENABLE, function (e) {
+        on(EVENT_ENABLE, function(e) {
             QorSeo.plugin.call($(selector, e.target), options);
         }).
         triggerHandler(EVENT_ENABLE);
