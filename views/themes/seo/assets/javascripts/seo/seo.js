@@ -105,7 +105,7 @@
             // "GlobalSetting": { "SiteName" : "Qor", "BrandName" : "ThePlant" }
 
             $.ajax({
-                type: "POST",
+                method: "POST",
                 url: $form.attr("action"),
                 data: new FormData($form[0]),
                 processData: false,
