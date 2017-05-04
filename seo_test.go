@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"reflect"
 	"strings"
 	"testing"
@@ -61,6 +63,46 @@ type SeoAppendDefaultValueTestCase struct {
 	ExpectTitle         string
 	ExpectDescription   string
 	ExpectKeywords      string
+}
+
+func TestSaveSEOSetting(t *testing.T) {
+	type SEOGlobalSetting struct {
+		SiteName string
+	}
+
+	Admin := admin.New(&qor.Config{DB: db})
+	seoCollection := New("Common SEO")
+	seoCollection.RegisterGlobalVaribles(&SEOGlobalSetting{SiteName: "Qor Shop"})
+	seoCollection.SettingResource = Admin.NewResource(&QorSEOSetting{}, &admin.Config{Invisible: true})
+	seoCollection.RegisterSEO(&SEO{
+		Name:     "Product",
+		Varibles: []string{"Name", "Code"},
+		Context: func(objects ...interface{}) map[string]string {
+			context := make(map[string]string)
+			context["Name"] = "name"
+			context["Code"] = "code"
+			return context
+		},
+	})
+	Admin.AddResource(seoCollection, &admin.Config{Name: "SEO Setting"})
+	server := httptest.NewServer(Admin.NewServeMux("/admin"))
+
+	form := url.Values{
+		"QorResource.Name": {"create_record"},
+		"QorResource.Role": {"admin"},
+	}
+
+	if req, err := http.PostForm(server.URL+seoCollection.SEOSettingURL("Product"), form); err == nil {
+		if req.StatusCode != 200 {
+			t.Errorf("Create request should be processed successfully, status code is %v", req.StatusCode)
+		}
+
+		if db.First(&QorSEOSetting{}, "name = ?", "create_record").RecordNotFound() {
+			t.Errorf("SEO Setting should be created successfully")
+		}
+	} else {
+		t.Errorf(err.Error())
+	}
 }
 
 // Runner

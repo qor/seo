@@ -9,7 +9,7 @@ import (
 	"github.com/qor/qor/resource"
 )
 
-// QorSeoSettingInterface support customize Seo model
+// QorSEOSettingInterface support customize Seo model
 type QorSEOSettingInterface interface {
 	GetName() string
 	SetName(string)
@@ -25,7 +25,7 @@ type QorSEOSettingInterface interface {
 	SetCollection(*Collection)
 }
 
-// QorSeoSetting default seo model
+// QorSEOSetting default seo model
 type QorSEOSetting struct {
 	Name        string `gorm:"primary_key"`
 	Setting     Setting
@@ -68,12 +68,12 @@ func (s *QorSEOSetting) SetSEOType(t string) {
 	s.Setting.Type = t
 }
 
-// GetIsGlobalSeo get QorSeoSetting's isGlobal
+// GetIsGlobalSEO get QorSEOSetting's isGlobal
 func (s QorSEOSetting) GetIsGlobalSEO() bool {
 	return s.IsGlobalSEO
 }
 
-// SetIsGlobalSeo set QorSeoSetting's isGlobal
+// SetIsGlobalSEO set QorSeoSetting's isGlobal
 func (s *QorSEOSetting) SetIsGlobalSEO(isGlobal bool) {
 	s.IsGlobalSEO = isGlobal
 }
@@ -108,7 +108,7 @@ func (s *QorSEOSetting) SetCollection(collection *Collection) {
 	s.collection = collection
 }
 
-// GetSeo get Setting's SEO configure
+// GetSEO get Setting's SEO configure
 func (s QorSEOSetting) GetSEO() *SEO {
 	return s.collection.GetSEO(s.Name)
 }

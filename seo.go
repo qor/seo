@@ -117,7 +117,7 @@ func (collection *Collection) GetSEO(name string) *SEO {
 	return &SEO{Name: name, collection: collection}
 }
 
-// SeoSettingURL get setting inline edit url by name
+// SEOSettingURL get setting inline edit url by name
 func (collection *Collection) SEOSettingURL(name string) string {
 	qorAdmin := collection.resource.GetAdmin()
 	return fmt.Sprintf("%v/%v/!seo_setting?name=%v", qorAdmin.GetRouter().Prefix, collection.resource.ToParam(), url.QueryEscape(name))
