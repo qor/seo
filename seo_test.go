@@ -87,18 +87,31 @@ func TestSaveSEOSetting(t *testing.T) {
 	Admin.AddResource(seoCollection, &admin.Config{Name: "SEO Setting"})
 	server := httptest.NewServer(Admin.NewServeMux("/admin"))
 
+	title := "title"
+	description := "description {{Name}} {{Code}}"
+	keyword := "keyword"
 	form := url.Values{
-		"QorResource.Name": {"create_record"},
-		"QorResource.Role": {"admin"},
+		"_method":                         {"PUT"},
+		"QorResource.Name":                {"Product"},
+		"QorResource.Setting.Title":       {title},
+		"QorResource.Setting.Description": {description},
+		"QorResource.Setting.Keywords":    {keyword},
 	}
+
+	db.Unscoped().Delete(&QorSEOSetting{}, "name = ?", "Product")
 
 	if req, err := http.PostForm(server.URL+seoCollection.SEOSettingURL("Product"), form); err == nil {
 		if req.StatusCode != 200 {
 			t.Errorf("Create request should be processed successfully, status code is %v", req.StatusCode)
 		}
 
-		if db.First(&QorSEOSetting{}, "name = ?", "create_record").RecordNotFound() {
+		var seoSetting QorSEOSetting
+		if db.First(&seoSetting, "name = ?", "Product").RecordNotFound() {
 			t.Errorf("SEO Setting should be created successfully")
+		}
+
+		if seoSetting.Setting.Title != title || seoSetting.Setting.Description != description || seoSetting.Setting.Keywords != keyword {
+			t.Errorf("SEOSetting should be saved correctly, its value %#v", seoSetting)
 		}
 	} else {
 		t.Errorf(err.Error())

@@ -26,11 +26,11 @@ func (sc seoController) Index(context *admin.Context) {
 }
 
 func (sc seoController) InlineEdit(context *admin.Context) {
-	context = context.NewResourceContext(sc.Collection.SettingResource)
+	settingContext := context.NewResourceContext(sc.Collection.SettingResource)
 	result := sc.Collection.SettingResource.NewStruct()
 	name, err := url.QueryUnescape(context.Request.Form.Get("name"))
 	if err != nil {
-		context.AddError(err)
+		settingContext.AddError(err)
 	}
 	context.DB.Where("name = ?", name).First(result)
 
@@ -39,7 +39,7 @@ func (sc seoController) InlineEdit(context *admin.Context) {
 	}
 
 	responder.With("html", func() {
-		context.Execute("edit", struct {
+		settingContext.Execute("edit", struct {
 			Setting interface{}
 			EditURL string
 			Metas   []*admin.Section
@@ -49,18 +49,18 @@ func (sc seoController) InlineEdit(context *admin.Context) {
 			Metas:   seoSettingMetas(sc.Collection),
 		})
 	}).With("json", func() {
-		context.JSON("edit", result)
+		settingContext.JSON("edit", result)
 	}).Respond(context.Request)
 }
 
 func (sc seoController) Update(context *admin.Context) {
 	settingResource := sc.Collection.SettingResource
-	context = context.NewResourceContext(settingResource)
+	settingContext := context.NewResourceContext(settingResource)
 	result := settingResource.NewStruct()
 
 	name, err := url.QueryUnescape(context.Request.Form.Get("name"))
 	if err != nil {
-		context.AddError(err)
+		settingContext.AddError(err)
 	}
 	context.DB.Where("name = ?", name).First(result)
 	if context.DB.NewRecord(result) {
@@ -80,21 +80,21 @@ func (sc seoController) Update(context *admin.Context) {
 		seoSettingInterface.SetGlobalSetting(globalSetting)
 	}
 
-	res := context.Resource
-	if !context.HasError() {
-		if context.AddError(res.Decode(context.Context, result)); !context.HasError() {
-			context.AddError(res.CallSave(result, context.Context))
+	res := settingContext.Resource
+	if !settingContext.HasError() {
+		if settingContext.AddError(res.Decode(settingContext.Context, result)); !settingContext.HasError() {
+			settingContext.AddError(res.CallSave(result, settingContext.Context))
 		}
 	}
 
 	responder.With("html", func() {
-		http.Redirect(context.Writer, context.Request, path.Join(settingResource.GetAdmin().GetRouter().Prefix, settingResource.ToParam()), http.StatusFound)
+		http.Redirect(context.Writer, context.Request, path.Join(settingResource.GetAdmin().GetRouter().Prefix, context.Resource.ToParam()), http.StatusFound)
 	}).With("json", func() {
-		if context.HasError() {
+		if settingContext.HasError() {
 			context.Writer.WriteHeader(admin.HTTPUnprocessableEntity)
-			context.JSON("edit", map[string]interface{}{"errors": context.GetErrors()})
+			settingContext.JSON("edit", map[string]interface{}{"errors": settingContext.GetErrors()})
 		} else {
-			context.JSON("show", result)
+			settingContext.JSON("show", result)
 		}
 	}).Respond(context.Request)
 }
