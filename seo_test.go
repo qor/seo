@@ -111,7 +111,32 @@ func TestSaveSEOSetting(t *testing.T) {
 		}
 
 		if seoSetting.Setting.Title != title || seoSetting.Setting.Description != description || seoSetting.Setting.Keywords != keyword {
-			t.Errorf("SEOSetting should be saved correctly, its value %#v", seoSetting)
+			t.Errorf("SEOSetting should be created correctly, its value %#v", seoSetting)
+		}
+	} else {
+		t.Errorf(err.Error())
+	}
+
+	form = url.Values{
+		"_method":                         {"PUT"},
+		"QorResource.Name":                {"Product"},
+		"QorResource.Setting.Title":       {"new" + title},
+		"QorResource.Setting.Description": {"new" + description},
+		"QorResource.Setting.Keywords":    {"new" + keyword},
+	}
+
+	if req, err := http.PostForm(server.URL+seoCollection.SEOSettingURL("Product"), form); err == nil {
+		if req.StatusCode != 200 {
+			t.Errorf("Create request should be processed successfully, status code is %v", req.StatusCode)
+		}
+
+		var seoSetting QorSEOSetting
+		if db.First(&seoSetting, "name = ?", "Product").RecordNotFound() {
+			t.Errorf("SEO Setting should be created successfully")
+		}
+
+		if seoSetting.Setting.Title != "new"+title || seoSetting.Setting.Description != "new"+description || seoSetting.Setting.Keywords != "new"+keyword {
+			t.Errorf("SEOSetting should be updated correctly, its value %#v", seoSetting)
 		}
 	} else {
 		t.Errorf(err.Error())
