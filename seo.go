@@ -134,7 +134,7 @@ func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 
 		collection.SettingResource.UseTheme("seo")
 		collection.SettingResource.EditAttrs("Name", "Setting")
-		if nameMeta := collection.SettingResource.GetMetaOrNew("Name"); nameMeta != nil {
+		if nameMeta := collection.SettingResource.GetMeta("Name"); nameMeta != nil {
 			nameMeta.Type = "hidden"
 		}
 
