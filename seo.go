@@ -41,6 +41,13 @@ type SEO struct {
 	collection *Collection
 }
 
+// MetaValues represents a seo object for result
+type MetaValues struct {
+	Title       string
+	Keywords    string
+	Description string
+}
+
 // RegisterGlobalVaribles register global setting struct and will represents as 'Site-wide Settings' part in admin
 func (collection *Collection) RegisterGlobalVaribles(s interface{}) {
 	collection.globalSetting = s
@@ -52,10 +59,10 @@ func (collection *Collection) RegisterSEO(seo *SEO) {
 	collection.registeredSEO = append(collection.registeredSEO, seo)
 }
 
-// Render render SEO Setting
-func (collection Collection) Render(context *qor.Context, name string, objects ...interface{}) template.HTML {
+// GetMetaValues return SEO title, keywords and description
+func (collection Collection) GetMetaValues(context *qor.Context, name string, objects ...interface{}) MetaValues {
 	var (
-		title, description, keywords string
+		title, keywords, description = "", "", ""
 		seoField                     Setting
 		db                           = context.GetDB()
 		seo                          = collection.GetSEO(name)
@@ -100,13 +107,20 @@ func (collection Collection) Render(context *qor.Context, name string, objects .
 		}
 	}
 
-	title = replaceTags(title, seo.Varibles, tagValues)
-	description = replaceTags(description, seo.Varibles, tagValues)
-	keywords = replaceTags(keywords, seo.Varibles, tagValues)
-	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", title, description, keywords))
+	return MetaValues{
+		Title:       replaceTags(title, seo.Varibles, tagValues),
+		Keywords:    replaceTags(keywords, seo.Varibles, tagValues),
+		Description: replaceTags(description, seo.Varibles, tagValues),
+	}
 }
 
-// GetSeo get a Seo by name
+// Render render SEO Setting
+func (collection Collection) Render(context *qor.Context, name string, objects ...interface{}) template.HTML {
+	metaValues := collection.GetMetaValues(context, name, objects...)
+	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", metaValues.Title, metaValues.Description, metaValues.Keywords))
+}
+
+// GetSEO get a Seo by name
 func (collection *Collection) GetSEO(name string) *SEO {
 	for _, s := range collection.registeredSEO {
 		if s.Name == name {
