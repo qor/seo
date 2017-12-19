@@ -58,12 +58,12 @@ func (s *QorSEOSetting) SetName(name string) {
 	s.Name = name
 }
 
-// GetSeoType get QorSeoSetting's type
+// GetSEOType get QorSeoSetting's type
 func (s QorSEOSetting) GetSEOType() string {
 	return s.Setting.Type
 }
 
-// SetSeoType set QorSeoSetting's type
+// SetSEOType set QorSeoSetting's type
 func (s *QorSEOSetting) SetSEOType(t string) {
 	s.Setting.Type = t
 }

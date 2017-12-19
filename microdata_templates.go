@@ -1,5 +1,6 @@
 package seo
 
+// MicroProductTemplate a bundle of microdata templates
 var (
 	MicroProductTemplate = `
 	<div itemscope itemtype="http://schema.org/Product" style="display:none;">
