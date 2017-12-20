@@ -10,28 +10,27 @@
         factory(jQuery);
     }
 })(function($) {
-    "use script";
+    'use script';
 
     var NAMESPACE = 'qor.seo';
     var EVENT_ENABLE = 'enable.' + NAMESPACE;
     var EVENT_DISABLE = 'disable.' + NAMESPACE;
     var EVENT_CLICK = 'click.' + NAMESPACE;
     var EVENT_BLUR = 'blur.' + NAMESPACE;
-    var CLASS_SUBMIT = ".qor-seo-submit";
-    var CLASS_ADD_TAGS_NAME = ".qor-seo-tag";
-    var CLASS_TAGS_INPUT_NAME = ".qor-seo-input-field";
-    var CLASS_DEFAULT_INPUT = ".qor-seo__defaults-input";
-    var CLASS_SETTINGS = ".qor-seo__settings";
+    var CLASS_SUBMIT = '.qor-seo-submit';
+    var CLASS_ADD_TAGS_NAME = '.qor-seo-tag';
+    var CLASS_TAGS_INPUT_NAME = '.qor-seo-input-field';
+    var CLASS_DEFAULT_INPUT = '.qor-seo__defaults-input';
+    var CLASS_SETTINGS = '.qor-seo__settings';
 
     function QorSeo(element, options) {
         this.$element = $(element);
         this.options = $.extend({}, QorSeo.DEFAULTS, $.isPlainObject(options) && options);
-        this.focusedInputID = "";
+        this.focusedInputID = '';
         this.init();
     }
 
     QorSeo.prototype = {
-
         constructor: QorSeo,
 
         init: function() {
@@ -71,7 +70,7 @@
             this.$addTgas.addClass('focus');
             var $focusedInput = $(document.activeElement);
 
-            this.focusedInputID = $focusedInput.prop("id");
+            this.focusedInputID = $focusedInput.prop('id');
             this.focusedInputStart = $focusedInput[0].selectionStart;
             this.focusedInputEnd = $focusedInput[0].selectionEnd;
             this.focusedInputVal = $focusedInput.val();
@@ -87,26 +86,29 @@
                 return;
             }
 
-            var newVal = "";
+            var newVal = '';
             var startString = this.focusedInputVal.substring(0, this.focusedInputStart);
             var endString = this.focusedInputVal.substring(this.focusedInputEnd, this.focusedInputVal.length);
-            var tagVal = "{{" + $(e.currentTarget).data("tagValue") + "}}";
+            var tagVal = '{{' + $(e.currentTarget).data('tagValue') + '}}';
 
             newVal = startString + tagVal + endString;
-            $("#" + this.focusedInputID).val(newVal).focus();
+            $('#' + this.focusedInputID)
+                .val(newVal)
+                .focus();
         },
 
         submitSeo: function() {
             var $element = this.$element,
-                $form = $element.find(".qor-form");
-
+                $form = $element.find('.qor-form');
 
             // new FormData(form)
             // "GlobalSetting": { "SiteName" : "Qor", "BrandName" : "ThePlant" }
 
+            $('.qor-seo-alert').hide();
+
             $.ajax({
-                method: "POST",
-                url: $form.attr("action"),
+                method: 'POST',
+                url: $form.attr('action'),
                 data: new FormData($form[0]),
                 processData: false,
                 contentType: false,
@@ -114,13 +116,13 @@
                 success: function() {
                     window.onbeforeunload = null;
                     $.fn.qorSlideoutBeforeHide = null;
-                    $('.qor-alert--success').show();
+                    $('.qor-seo-alert.qor-alert--success').show();
                     setTimeout(function() {
                         $('.qor-alert--success').hide();
                     }, 3000);
                 },
                 error: function() {
-                    $('.qor-alert--error').show();
+                    $('.qor-seo-alert.qor-alert--error').show();
                 }
             });
             return false;
@@ -148,7 +150,7 @@
                 $this.data(NAMESPACE, (data = new QorSeo(this, options)));
             }
 
-            if (typeof options === 'string' && $.isFunction(fn = data[options])) {
+            if (typeof options === 'string' && $.isFunction((fn = data[options]))) {
                 fn.apply(data);
             }
         });
@@ -158,18 +160,19 @@
         var selector = '[data-toggle="qor.seo"]',
             options = {};
 
-        $(document).
-        on('click.qor.fixedAlert', '[data-dismiss="fixed-alert"]', function() {
-            $(this).closest('.qor-alert').hide();
-        }).
-        on(EVENT_DISABLE, function(e) {
-            QorSeo.plugin.call($(selector, e.target), 'destroy');
-        }).
-        on(EVENT_ENABLE, function(e) {
-            QorSeo.plugin.call($(selector, e.target), options);
-        }).
-        triggerHandler(EVENT_ENABLE);
-
+        $(document)
+            .on('click.qor.fixedAlert', '[data-dismiss="fixed-alert"]', function() {
+                $(this)
+                    .closest('.qor-alert')
+                    .hide();
+            })
+            .on(EVENT_DISABLE, function(e) {
+                QorSeo.plugin.call($(selector, e.target), 'destroy');
+            })
+            .on(EVENT_ENABLE, function(e) {
+                QorSeo.plugin.call($(selector, e.target), options);
+            })
+            .triggerHandler(EVENT_ENABLE);
     });
 
     return QorSeo;
