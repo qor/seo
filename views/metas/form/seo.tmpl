@@ -45,6 +45,27 @@
       </div>
     </div>
 
+    <div class="qor-field">
+      <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
+        <input class="qor-seo-input-field qor-seo-keywords-field mdl-textfield__input" type="text" id="{{.InputId}}_OpenGraphURL" name="{{.InputName}}.OpenGraphURL" {{if $value}}value="{{$value.OpenGraphURL}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+        <label class="mdl-textfield__label" for="{{.InputId}}_Keywords">{{t (printf "%v.open_graph_url" .BaseResource.ToParam) "Open Graph URL"}}</label>
+      </div>
+    </div>
+
+    <div class="qor-field">
+      <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
+        <input class="qor-seo-input-field qor-seo-keywords-field mdl-textfield__input" type="text" id="{{.InputId}}_OpenGraphType" name="{{.InputName}}.OpenGraphType" {{if $value}}value="{{$value.OpenGraphType}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+        <label class="mdl-textfield__label" for="{{.InputId}}_Keywords">{{t (printf "%v.open_graph_type" .BaseResource.ToParam) "Open Graph Type"}}</label>
+      </div>
+    </div>
+
+    <div class="qor-field">
+      <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
+        <input class="qor-seo-input-field qor-seo-keywords-field mdl-textfield__input" type="text" id="{{.InputId}}_OpenGraphImage" name="{{.InputName}}.OpenGraphImage" {{if $value}}value="{{$value.OpenGraphImage}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+        <label class="mdl-textfield__label" for="{{.InputId}}_Keywords">{{t (printf "%v.open_graph_image" .BaseResource.ToParam) "Open Graph Image"}}</label>
+      </div>
+    </div>
+
     <input type="hidden" class="qor-seo-type-field" name="{{.InputName}}.Type" value="{{$value.Type}}"/>
   </div>
 </div>

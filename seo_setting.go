@@ -44,6 +44,9 @@ type Setting struct {
 	Description      string
 	Keywords         string
 	Type             string
+	OpenGraphURL     string
+	OpenGraphType    string
+	OpenGraphImage   string
 	EnabledCustomize bool
 	GlobalSetting    map[string]string
 }
