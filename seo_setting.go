@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/qor/admin"
+	"github.com/qor/media/media_library"
 	"github.com/qor/qor/resource"
 )
 
@@ -46,7 +47,7 @@ type Setting struct {
 	Type             string
 	OpenGraphURL     string
 	OpenGraphType    string
-	OpenGraphImage   string
+	OpenGraphImage   media_library.MediaBox
 	EnabledCustomize bool
 	GlobalSetting    map[string]string
 }

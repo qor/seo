@@ -37,8 +37,14 @@ type Collection struct {
 type SEO struct {
 	Name       string
 	Varibles   []string
+	OpenGraph  *OpenGraphConfig
 	Context    func(...interface{}) map[string]string
 	collection *Collection
+}
+
+// OpenGraphConfig open graph config
+type OpenGraphConfig struct {
+	ImageResource *admin.Resource
 }
 
 // MetaValues represents a seo object for result
