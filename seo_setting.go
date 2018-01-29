@@ -48,9 +48,15 @@ type Setting struct {
 	OpenGraphURL      string
 	OpenGraphType     string
 	OpenGraphImage    media_library.MediaBox
-	OpenGraphMetadata map[string]string
+	OpenGraphMetadata []OpenGraphMetadata
 	EnabledCustomize  bool
 	GlobalSetting     map[string]string
+}
+
+// OpenGraphMetadata open graph meta data
+type OpenGraphMetadata struct {
+	Property string
+	Content  string
 }
 
 // GetName get QorSeoSetting's name

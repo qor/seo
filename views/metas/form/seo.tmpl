@@ -76,7 +76,7 @@
           <div class="qor-field__block">
             <div class="qor-field__edit">
               <div class="qor-field__mediabox-list">
-                <textarea class="hidden qor-field__mediabox-data" name="{{.InputName}}" aria-hidden="true">{{marshal $value.OpenGraphImage.Files}}</textarea>
+                <textarea class="hidden qor-field__mediabox-data" name="{{.InputName}}.OpenGraphImage" aria-hidden="true">{{marshal $value.OpenGraphImage.Files}}</textarea>
 
                 {{if $value.OpenGraphImage.Files}}
                   {{range $file := $value.OpenGraphImage.Files}}
@@ -192,6 +192,9 @@
                       <i class="material-icons md-18">delete</i>
                     </button>
                   {{end}}
+
+                  {{$index}}
+                  {{$value}}
 
                   // TODO :FORM
                 </fieldset>
