@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/qor/admin"
+	"github.com/qor/media"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
@@ -45,6 +46,7 @@ type SEO struct {
 // OpenGraphConfig open graph config
 type OpenGraphConfig struct {
 	ImageResource *admin.Resource
+	Size          *media.Size
 }
 
 // MetaValues represents a seo object for result
@@ -62,6 +64,9 @@ func (collection *Collection) RegisterGlobalVaribles(s interface{}) {
 // RegisterSEO register a seo
 func (collection *Collection) RegisterSEO(seo *SEO) {
 	seo.collection = collection
+	if seo.OpenGraph == nil {
+		seo.OpenGraph = &OpenGraphConfig{}
+	}
 	collection.registeredSEO = append(collection.registeredSEO, seo)
 }
 

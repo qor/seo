@@ -65,13 +65,13 @@
 
     <div class="qor-field">
       <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
-        <input class="qor-seo-input-field qor-seo-keywords-field mdl-textfield__input" type="text" id="{{.InputId}}_OpenGraphImage" name="{{.InputName}}.OpenGraphImage" {{if $value}}value="{{$value.OpenGraphImage}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
         <label class="mdl-textfield__label" for="{{.InputId}}_OpenGraphImage">
           {{t (printf "%v.open_graph_image" .BaseResource.ToParam) "Open Graph Image"}}
         </label>
 
         {{$openGraphImageResource := $seo.OpenGraph.ImageResource}}
-
+        {{if $openGraphImageResource}}
+        {{$openGraphImageSize := $seo.OpenGraph.Size}}
         <div class="qor-field qor-field__mediabox" data-toggle="qor.mediabox">
           <div class="qor-field__block">
             <div class="qor-field__edit">
@@ -88,8 +88,8 @@
 
                         <ul class="clearfix">
                           {{if $file.IsImage}}
-                            {{if $metaConfig.Sizes}}
-                              {{range $key, $size := $metaConfig.Sizes}}
+                            {{if $openGraphImageSize}}
+                              {{range $key, $size := $openGraphImageSize}}
                                 {{if not (is_included $key "@")}}
                                   <li>
                                     <img src="{{$file.URL $key}}" data-original-url="{{$file.URL "original"}}" data-size-name="{{$key}}" data-size-resolution="{{marshal $size}}" />
@@ -116,12 +116,11 @@
                     data-select-modal="mediabox"
                     data-select-id={{.InputId}}
                     title="{{t "qor_media_library.form.choose_file" "Choose File"}}"
-                    {{if $metaConfig.Sizes}}data-crop-sizes="{{range $key, $size := $metaConfig.Sizes}}{{$key}},{{end}}"{{end}}
+                    {{if $openGraphImageSize}}data-crop-sizes="{{range $key, $size := $openGraphImageSize}}{{$key}},{{end}}"{{end}}
                     {{if not (has_update_permission .Meta)}}disabled data-is-disabled="true"{{end}}
-                    {{if $metaConfig.Max}}
-                    data-max-item="{{$metaConfig.Max}}"
-                    data-max-item-hint="{{t "qor_media_library.form.choose_file.max_hint" "Choose up to {{$1}} item(s)" $metaConfig.Max}}"
-                    {{end}}>
+                    data-max-item="1"
+                    data-max-item-hint="{{t "qor_media_library.form.choose_file.max_hint" "Choose up to {{$1}} item(s)" 1}}"
+                    >
                   {{t (printf "%v.attributes.add_%v" .BaseResource.ToParam (singular (meta_label .Meta))) (printf "Add %v" (singular (meta_label .Meta)))}}
               </label>
 
@@ -134,8 +133,8 @@
                 <div class="qor-file__list">
                   <textarea class="qor-file__options hidden" data-cropper-title="{{t "qor_media_library.form.crop_image" "Crop the image"}}" data-cropper-cancel="{{t "qor_media_library.form.cancel" "Cancel"}}" data-cropper-ok="{{t "qor_media_library.form.save" "SAVE"}}" data-fetch-sizedata=[[mediaLibraryUrl]] aria-hidden="true"></textarea>
                   <ul class="clearfix">
-                    {{if $metaConfig.Sizes}}
-                      {{range $key, $size := $metaConfig.Sizes}}
+                    {{if $openGraphImageSize}}
+                      {{range $key, $size := $openGraphImageSize}}
                         <li {{if (is_included $key "@")}}style="display:none"{{end}}>
                           <img src="[[MediaOption.URL]]" data-original-url="[[MediaOption.OriginalURL]]" data-size-name="{{$key}}" data-size-resolution="true" data-size-resolution-width="{{$size.Width}}" data-size-resolution-height="{{$size.Height}}">
                           <span>{{$key}} ({{$size.Width}}&times;{{$size.Height}} px)</span>
@@ -167,14 +166,12 @@
               <a href="#" data-dismiss="bottomsheets">{{t "qor_admin.form.select_many_hint_button" "DONE"}}</a>
             </div>
           </script>
-
         </div>
-
         {{javascript_tag "media_box"}}
         {{stylesheet_tag "media_box"}}
-
-
-
+        {{else}}
+        <input class="qor-seo-input-field qor-seo-keywords-field mdl-textfield__input" type="text" id="{{.InputId}}_OpenGraphImage" name="{{.InputName}}.OpenGraphImage" {{if $value}}value="{{$value.OpenGraphImage}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+        {{end}}
       </div>
     </div>
 
