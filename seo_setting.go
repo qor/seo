@@ -41,15 +41,16 @@ type QorSEOSetting struct {
 
 // Setting defined meta's attributes
 type Setting struct {
-	Title            string `gorm:"size:4294967295"`
-	Description      string
-	Keywords         string
-	Type             string
-	OpenGraphURL     string
-	OpenGraphType    string
-	OpenGraphImage   media_library.MediaBox
-	EnabledCustomize bool
-	GlobalSetting    map[string]string
+	Title             string `gorm:"size:4294967295"`
+	Description       string
+	Keywords          string
+	Type              string
+	OpenGraphURL      string
+	OpenGraphType     string
+	OpenGraphImage    media_library.MediaBox
+	OpenGraphMetadata map[string]string
+	EnabledCustomize  bool
+	GlobalSetting     map[string]string
 }
 
 // GetName get QorSeoSetting's name
