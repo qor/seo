@@ -175,8 +175,10 @@
 
     <div class="qor-field">
 
-
         <div class="qor-field collection-edit qor-fieldset-container">
+          <label class="qor-field__label" for="{{.InputId}}_Keywords">
+            {{t (printf "%v.open_graph_metadata" .BaseResource.ToParam) "Open Graph Metadata"}}
+          </label>
           <div class="qor-field__block">
             {{$meta := .Meta}}
             {{if $value.OpenGraphMetadata}}
