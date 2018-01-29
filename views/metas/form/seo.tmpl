@@ -170,7 +170,7 @@
         {{javascript_tag "media_box"}}
         {{stylesheet_tag "media_box"}}
         {{else}}
-        <input class="qor-seo-input-field qor-seo-keywords-field mdl-textfield__input" type="text" id="{{.InputId}}_OpenGraphImage" name="{{.InputName}}.OpenGraphImage" {{if $value}}value="{{$value.OpenGraphImage}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+        <input class="qor-seo-input-field qor-seo-keywords-field mdl-textfield__input" type="text" id="{{.InputId}}_OpenGraphImage" name="{{.InputName}}.OpenGraphImage" {{if $value}}value="{{$value.OpenGraphImage.URL}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
         {{end}}
       </div>
     </div>
