@@ -64,122 +64,117 @@
     </div>
 
     <div class="qor-field">
-      <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
-        <label class="mdl-textfield__label" for="{{.InputId}}_OpenGraphImage">
+      {{$openGraphImageResource := $seo.OpenGraph.ImageResource}}
+      {{if $openGraphImageResource}}
+      {{$openGraphImageSize := $seo.OpenGraph.Size}}
+      <div class="qor-field qor-field__mediabox" data-toggle="qor.mediabox">
+        <label class="qor-field__label" for="{{.InputId}}_OpenGraphImage">
           {{t (printf "%v.open_graph_image" .BaseResource.ToParam) "Open Graph Image"}}
         </label>
+        <div class="qor-field__block">
+          <div class="qor-field__edit">
+            <div class="qor-field__mediabox-list">
+              <textarea class="hidden qor-field__mediabox-data" name="{{.InputName}}" aria-hidden="true">{{marshal $value.OpenGraphImage.Files}}</textarea>
 
-        {{$openGraphImageResource := $seo.OpenGraph.ImageResource}}
-        {{if $openGraphImageResource}}
-        {{$openGraphImageSize := $seo.OpenGraph.Size}}
-        <div class="qor-field qor-field__mediabox" data-toggle="qor.mediabox">
-          <div class="qor-field__block">
-            <div class="qor-field__edit">
-              <div class="qor-field__mediabox-list">
-                <textarea class="hidden qor-field__mediabox-data" name="{{.InputName}}.OpenGraphImage" aria-hidden="true">{{marshal $value.OpenGraphImage.Files}}</textarea>
-
-                {{if $value.OpenGraphImage.Files}}
-                  {{range $file := $value.OpenGraphImage.Files}}
-                    <div class="qor-file qor-field__mediabox-item {{if not $file.IsImage}}qor-field__file-item{{end}} {{if $file.IsSVG}}is-svg{{end}}" data-media-library-url="{{printf "%s/%v" (url_for $openGraphImageResource) $file.ID}}" data-primary-key={{$file.ID}} data-original-url="{{$file.URL "original"}}">
-                      <div class="qor-file__list">
-                        {{if $file.IsImage}}
-                        <textarea class="qor-file__options hidden" data-cropper-title="{{t "qor_media_library.form.crop_image" "Crop the image"}}" data-cropper-cancel="{{t "qor_media_library.form.cancel" "Cancel"}}" data-cropper-ok="{{t "qor_media_library.form.save" "SAVE"}}" data-fetch-sizedata="{{printf "%s/%v" (url_for $openGraphImageResource) $file.ID}}" aria-hidden="true"></textarea>
-                        {{end}}
-
-                        <ul class="clearfix">
-                          {{if $file.IsImage}}
-                            {{if $openGraphImageSize}}
-                              {{range $key, $size := $openGraphImageSize}}
-                                {{if not (is_included $key "@")}}
-                                  <li>
-                                    <img src="{{$file.URL $key}}" data-original-url="{{$file.URL "original"}}" data-size-name="{{$key}}" data-size-resolution="{{marshal $size}}" />
-                                    <span>{{$key}} ({{$size.Width}}&times;{{$size.Height}} px)</span>
-                                  </li>
-                                {{end}}
-                              {{end}}
-                            {{else}}
-                              <li>
-                                  <img src="{{$file.URL}}" data-original-url="{{$file.URL "original"}}" data-size-name="original">
-                              </li>
-                            {{end}}
-                          {{end}}
-                        </ul>
-                        <input type="file" class="qor-file__input visuallyhidden" />
-                      </div>
-                    </div>
-                  {{end}}
-                {{end}}
-              </div>
-
-              <label class="mdl-button qor-button__icon-add mdl-button--primary"
-                    data-mediabox-url="{{url_for $openGraphImageResource}}"
-                    data-select-modal="mediabox"
-                    data-select-id={{.InputId}}
-                    title="{{t "qor_media_library.form.choose_file" "Choose File"}}"
-                    {{if $openGraphImageSize}}data-crop-sizes="{{range $key, $size := $openGraphImageSize}}{{$key}},{{end}}"{{end}}
-                    {{if not (has_update_permission .Meta)}}disabled data-is-disabled="true"{{end}}
-                    data-max-item="1"
-                    data-max-item-hint="{{t "qor_media_library.form.choose_file.max_hint" "Choose up to {{$1}} item(s)" 1}}"
-                    >
-                  {{t (printf "%v.attributes.add_%v" .BaseResource.ToParam "Open Graph Image") "Add Open Graph Image"}}
-              </label>
-
-            </div>
-          </div>
-
-          <script name="media-box-template" type="x-tmpl-mustache">
-            [[#MediaOption]]
-              <div class="qor-file qor-field__mediabox-item" data-primary-key="[[primaryKey]]" data-file-name="[[MediaOption.FileName]]" data-media-library-url="[[mediaLibraryUrl]]" data-original-url="[[MediaOption.URL]]">
-                <div class="qor-file__list">
-                  <textarea class="qor-file__options hidden" data-cropper-title="{{t "qor_media_library.form.crop_image" "Crop the image"}}" data-cropper-cancel="{{t "qor_media_library.form.cancel" "Cancel"}}" data-cropper-ok="{{t "qor_media_library.form.save" "SAVE"}}" data-fetch-sizedata=[[mediaLibraryUrl]] aria-hidden="true"></textarea>
-                  <ul class="clearfix">
-                    {{if $openGraphImageSize}}
-                      {{range $key, $size := $openGraphImageSize}}
-                        <li {{if (is_included $key "@")}}style="display:none"{{end}}>
-                          <img src="[[MediaOption.URL]]" data-original-url="[[MediaOption.OriginalURL]]" data-size-name="{{$key}}" data-size-resolution="true" data-size-resolution-width="{{$size.Width}}" data-size-resolution-height="{{$size.Height}}">
-                          <span>{{$key}} ({{$size.Width}}&times;{{$size.Height}} px)</span>
-                        </li>
+              {{if $value.OpenGraphImage.Files}}
+                {{range $file := $value.OpenGraphImage.Files}}
+                  <div class="qor-file qor-field__mediabox-item {{if not $file.IsImage}}qor-field__file-item{{end}} {{if $file.IsSVG}}is-svg{{end}}" data-media-library-url="{{printf "%s/%v" (url_for $openGraphImageResource) $file.ID}}" data-primary-key={{$file.ID}} data-original-url="{{$file.URL "original"}}">
+                    <div class="qor-file__list">
+                      {{if $file.IsImage}}
+                      <textarea class="qor-file__options hidden" data-cropper-title="{{t "qor_media_library.form.crop_image" "Crop the image"}}" data-cropper-cancel="{{t "qor_media_library.form.cancel" "Cancel"}}" data-cropper-ok="{{t "qor_media_library.form.save" "SAVE"}}" data-fetch-sizedata="{{printf "%s/%v" (url_for $openGraphImageResource) $file.ID}}" aria-hidden="true"></textarea>
                       {{end}}
-                    {{else}}
-                    <li>
-                      <img src="[[MediaOption.URL]]" alt="[[MediaOption.FileName]]" data-original-url="[[MediaOption.OriginalURL]]" data-size-name="original" />
-                    </li>
-                    {{end}}
-                  </ul>
-                  <span class="qor-file__input visuallyhidden"></span>
-                </div>
-              </div>
-            [[/MediaOption]]
-          </script>
 
-          <script name="media-box-undo-delete" type="x-tmpl-mustache">
-            <div class="qor-fieldset__alert">
-              <button class="mdl-button mdl-button--accent mdl-js-button mdl-js-ripple-effect qor-cropper__toggle--undo" type="button">{{marshal (t "qor_media_library.form.crop_image.undo_delete" "Undo delete")}}</button>
+                      <ul class="clearfix">
+                        {{if $file.IsImage}}
+                          {{if $openGraphImageSize}}
+                            {{range $key, $size := $openGraphImageSize}}
+                              {{if not (is_included $key "@")}}
+                                <li>
+                                  <img src="{{$file.URL $key}}" data-original-url="{{$file.URL "original"}}" data-size-name="{{$key}}" data-size-resolution="{{marshal $size}}" />
+                                  <span>{{$key}} ({{$size.Width}}&times;{{$size.Height}} px)</span>
+                                </li>
+                              {{end}}
+                            {{end}}
+                          {{else}}
+                            <li>
+                                <img src="{{$file.URL}}" data-original-url="{{$file.URL "original"}}" data-size-name="original">
+                            </li>
+                          {{end}}
+                        {{end}}
+                      </ul>
+                      <input type="file" class="qor-file__input visuallyhidden" />
+                    </div>
+                  </div>
+                {{end}}
+              {{end}}
             </div>
-          </script>
-          <script name="select-many-selected-icon" type="x-tmpl-mustache">
-            <span class="qor-select__select-icon"><i class="material-icons">check_circle</i></span>
-          </script>
-          <script name="select-many-hint" type="x-tmpl-mustache">
-            <div class="qor-selectmany__hint clearfix">
-              <span>[[ selectedNum ]] {{marshal (t "qor_admin.form.select_many_hint" "item(s) selected")}}</span>
-              <a href="#" data-dismiss="bottomsheets">{{t "qor_admin.form.select_many_hint_button" "DONE"}}</a>
-            </div>
-          </script>
+
+            <label class="mdl-button qor-button__icon-add mdl-button--primary"
+                  data-mediabox-url="{{url_for $openGraphImageResource}}"
+                  data-select-modal="mediabox"
+                  data-select-id={{.InputId}}
+                  title="{{t "qor_media_library.form.choose_file" "Choose File"}}"
+                  {{if $openGraphImageSize}}data-crop-sizes="{{range $key, $size := $openGraphImageSize}}{{$key}},{{end}}"{{end}}
+                  {{if not (has_update_permission .Meta)}}disabled data-is-disabled="true"{{end}}
+                  data-max-item="1"
+                  data-max-item-hint="{{t "qor_media_library.form.choose_file.max_hint" "Choose up to {{$1}} item(s)" 1}}"
+                  >
+                {{t (printf "%v.attributes.add_%v" .BaseResource.ToParam "Open Graph Image") "Add Open Graph Image"}}
+            </label>
+
+          </div>
         </div>
-        {{javascript_tag "media_box"}}
-        {{stylesheet_tag "media_box"}}
-        {{else}}
-        <input class="qor-seo-input-field qor-seo-keywords-field mdl-textfield__input" type="text" id="{{.InputId}}_OpenGraphImage" name="{{.InputName}}.OpenGraphImage" {{if $value}}value="{{$value.OpenGraphImage.URL}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
-        {{end}}
+
+        <script name="media-box-template" type="x-tmpl-mustache">
+          [[#MediaOption]]
+            <div class="qor-file qor-field__mediabox-item" data-primary-key="[[primaryKey]]" data-file-name="[[MediaOption.FileName]]" data-media-library-url="[[mediaLibraryUrl]]" data-original-url="[[MediaOption.URL]]">
+              <div class="qor-file__list">
+                <textarea class="qor-file__options hidden" data-cropper-title="{{t "qor_media_library.form.crop_image" "Crop the image"}}" data-cropper-cancel="{{t "qor_media_library.form.cancel" "Cancel"}}" data-cropper-ok="{{t "qor_media_library.form.save" "SAVE"}}" data-fetch-sizedata=[[mediaLibraryUrl]] aria-hidden="true"></textarea>
+                <ul class="clearfix">
+                  {{if $openGraphImageSize}}
+                    {{range $key, $size := $openGraphImageSize}}
+                      <li {{if (is_included $key "@")}}style="display:none"{{end}}>
+                        <img src="[[MediaOption.URL]]" data-original-url="[[MediaOption.OriginalURL]]" data-size-name="{{$key}}" data-size-resolution="true" data-size-resolution-width="{{$size.Width}}" data-size-resolution-height="{{$size.Height}}">
+                        <span>{{$key}} ({{$size.Width}}&times;{{$size.Height}} px)</span>
+                      </li>
+                    {{end}}
+                  {{else}}
+                  <li>
+                    <img src="[[MediaOption.URL]]" alt="[[MediaOption.FileName]]" data-original-url="[[MediaOption.OriginalURL]]" data-size-name="original" />
+                  </li>
+                  {{end}}
+                </ul>
+                <span class="qor-file__input visuallyhidden"></span>
+              </div>
+            </div>
+          [[/MediaOption]]
+        </script>
+
+        <script name="media-box-undo-delete" type="x-tmpl-mustache">
+          <div class="qor-fieldset__alert">
+            <button class="mdl-button mdl-button--accent mdl-js-button mdl-js-ripple-effect qor-cropper__toggle--undo" type="button">{{marshal (t "qor_media_library.form.crop_image.undo_delete" "Undo delete")}}</button>
+          </div>
+        </script>
+        <script name="select-many-selected-icon" type="x-tmpl-mustache">
+          <span class="qor-select__select-icon"><i class="material-icons">check_circle</i></span>
+        </script>
+        <script name="select-many-hint" type="x-tmpl-mustache">
+          <div class="qor-selectmany__hint clearfix">
+            <span>[[ selectedNum ]] {{marshal (t "qor_admin.form.select_many_hint" "item(s) selected")}}</span>
+            <a href="#" data-dismiss="bottomsheets">{{t "qor_admin.form.select_many_hint_button" "DONE"}}</a>
+          </div>
+        </script>
       </div>
+      {{javascript_tag "media_box"}}
+      {{stylesheet_tag "media_box"}}
+      {{else}}
+      <input class="qor-seo-input-field qor-seo-keywords-field mdl-textfield__input" type="text" id="{{.InputId}}_OpenGraphImage" name="{{.InputName}}.OpenGraphImage" {{if $value}}value="{{$value.OpenGraphImage.URL}}"{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
+      {{end}}
+
     </div>
 
     <div class="qor-field">
-      <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
-        <label class="mdl-textfield__label" for="{{.InputId}}_Keywords">
-          {{t (printf "%v.open_graph_metadata" .BaseResource.ToParam) "Open Graph Metadata"}}
-        </label>
+
 
         <div class="qor-field collection-edit qor-fieldset-container">
           <div class="qor-field__block">
@@ -196,53 +191,53 @@
                   {{$index}}
                   {{$value}}
 
-                  // TODO :FORM
+                  <!-- // TODO :FORM -->
                 </fieldset>
               {{end}}
+
             {{end}}
 
-              <fieldset class="qor-fieldset qor-fieldset--new">
-                <button class="mdl-button qor-button--muted mdl-button--icon mdl-js-button qor-fieldset__delete" type="button">
-                  <i class="material-icons md-18">delete</i>
-                </button>
 
-                <div class="qor-form-section clearfix" data-section-title="">
-                  <div>
-                    <div class="qor-form-section-rows qor-section-columns-2 clearfix">
-                      <div class="qor-field">
-                        <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield" >
-                          <label class="qor-field__label mdl-textfield__label" for="">
-                            Property
-                          </label>
+            <fieldset class="qor-fieldset qor-fieldset--new">
+              <button class="mdl-button qor-button--muted mdl-button--icon mdl-js-button qor-fieldset__delete" type="button">
+                <i class="material-icons md-18">delete</i>
+              </button>
 
-
-                          <div class="qor-field__edit">
-                            <input class="mdl-textfield__input" type="text" id="" name="{{.InputName}}.OpenGraphMetadata[0].Property" value="">
-                          </div>
+              <div class="qor-form-section clearfix" data-section-title="">
+                <div>
+                  <div class="qor-form-section-rows qor-section-columns-2 clearfix">
+                    <div class="qor-field">
+                      <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield" >
+                        <label class="qor-field__label mdl-textfield__label" for="">
+                          Property
+                        </label>
+                        <div class="qor-field__edit">
+                          <input class="mdl-textfield__input" type="text" id="" name="{{.InputName}}.OpenGraphMetadata[0].Property" value="">
                         </div>
                       </div>
-                      <div class="qor-field">
-                        <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield" >
-                          <label class="qor-field__label mdl-textfield__label" for="">
-                            Content
-                          </label>
+                    </div>
+                    <div class="qor-field">
+                      <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield" >
+                        <label class="qor-field__label mdl-textfield__label" for="">
+                          Content
+                        </label>
 
-                          <div class="qor-field__edit">
-                            <input class="mdl-textfield__input" type="text" id="" name="{{.InputName}}.OpenGraphMetadata[0].Content" value="">
-                          </div>
+                        <div class="qor-field__edit">
+                          <input class="mdl-textfield__input" type="text" id="" name="{{.InputName}}.OpenGraphMetadata[0].Content" value="">
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </fieldset>
+              </div>
+            </fieldset>
 
-              <button class="mdl-button mdl-button--primary qor-fieldset__add" type="button">
-                {{t (printf "%v.add_metadata" .BaseResource.ToParam) "Add Metadata"}}
-              </button>
-          </div>
+            <button class="mdl-button mdl-button--primary qor-fieldset__add" type="button">
+              {{t (printf "%v.add_metadata" .BaseResource.ToParam) "Add Metadata"}}
+            </button>
         </div>
       </div>
+
     </div>
 
     <input type="hidden" class="qor-seo-type-field" name="{{.InputName}}.Type" value="{{$value.Type}}"/>
