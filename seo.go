@@ -168,6 +168,11 @@ func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 			settingMeta.Resource.Meta(&admin.Meta{Name: "OpenGraphImage", Config: &media_library.MediaBoxConfig{
 				Max: 1,
 			}})
+
+			metadataResource := settingMeta.Resource.Meta(&admin.Meta{Name: "OpenGraphMetadata"}).Resource
+			metadataResource.NewAttrs(&admin.Section{Rows: [][]string{{"Property", "Content"}}})
+			metadataResource.EditAttrs(&admin.Section{Rows: [][]string{{"Property", "Content"}}})
+
 			settingMeta.Resource.EditAttrs("Title", "Description", "Keywords", "Type", "OpenGraphURL", "OpenGraphType", "OpenGraphImage", "OpenGraphMetadata", "EnabledCustomize")
 		}
 
