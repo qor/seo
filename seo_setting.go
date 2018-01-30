@@ -168,6 +168,9 @@ func (setting Setting) FormattedHTML(context *qor.Context) template.HTML {
 			if context.Request != nil {
 				u.Host = context.Request.Host
 				u.Scheme = context.Request.URL.Scheme
+				if u.Scheme == "" {
+					u.Scheme = "http"
+				}
 			}
 			return u.String()
 		}
