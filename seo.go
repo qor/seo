@@ -50,13 +50,6 @@ type OpenGraphConfig struct {
 	Size          *media.Size
 }
 
-// MetaValues represents a seo object for result
-type MetaValues struct {
-	Title       string
-	Keywords    string
-	Description string
-}
-
 // RegisterGlobalVaribles register global setting struct and will represents as 'Site-wide Settings' part in admin
 func (collection *Collection) RegisterGlobalVaribles(s interface{}) {
 	collection.globalSetting = s
@@ -71,13 +64,12 @@ func (collection *Collection) RegisterSEO(seo *SEO) {
 	collection.registeredSEO = append(collection.registeredSEO, seo)
 }
 
-// GetMetaValues return SEO title, keywords and description
-func (collection Collection) GetMetaValues(context *qor.Context, name string, objects ...interface{}) MetaValues {
+// GetSEOSetting return SEO title, keywords and description and open graph settings
+func (collection Collection) GetSEOSetting(context *qor.Context, name string, objects ...interface{}) Setting {
 	var (
-		title, keywords, description = "", "", ""
-		seoField                     Setting
-		db                           = context.GetDB()
-		seo                          = collection.GetSEO(name)
+		seoSetting Setting
+		db         = context.GetDB()
+		seo        = collection.GetSEO(name)
 	)
 
 	// If passed objects has customzied SEO Setting field
@@ -85,23 +77,17 @@ func (collection Collection) GetMetaValues(context *qor.Context, name string, ob
 		if value := reflect.Indirect(reflect.ValueOf(obj)); value.IsValid() && value.Kind() == reflect.Struct {
 			for i := 0; i < value.NumField(); i++ {
 				if value.Field(i).Type() == reflect.TypeOf(Setting{}) {
-					seoField = value.Field(i).Interface().(Setting)
+					seoSetting = value.Field(i).Interface().(Setting)
 					break
 				}
 			}
 		}
 	}
 
-	if seoField.EnabledCustomize {
-		title = seoField.Title
-		description = seoField.Description
-		keywords = seoField.Keywords
-	} else {
-		seoSetting := collection.SettingResource.NewStruct().(QorSEOSettingInterface)
-		if !db.Where("name = ?", name).First(seoSetting).RecordNotFound() {
-			title = seoSetting.GetTitle()
-			description = seoSetting.GetDescription()
-			keywords = seoSetting.GetKeywords()
+	if !seoSetting.EnabledCustomize {
+		globalSeoSetting := collection.SettingResource.NewStruct().(QorSEOSettingInterface)
+		if !db.Where("name = ?", name).First(globalSeoSetting).RecordNotFound() {
+			seoSetting = globalSeoSetting.GetSEOSetting()
 		}
 	}
 
@@ -119,11 +105,7 @@ func (collection Collection) GetMetaValues(context *qor.Context, name string, ob
 		}
 	}
 
-	return MetaValues{
-		Title:       replaceTags(title, seo.Varibles, tagValues),
-		Keywords:    replaceTags(keywords, seo.Varibles, tagValues),
-		Description: replaceTags(description, seo.Varibles, tagValues),
-	}
+	return replaceTags(seoSetting, seo.Varibles, tagValues)
 }
 
 // Render render SEO Setting
@@ -199,11 +181,27 @@ func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 }
 
 // Helpers
-func replaceTags(originalVal string, validTags []string, values map[string]string) string {
-	re := regexp.MustCompile("{{([a-zA-Z0-9]*)}}")
-	matches := re.FindAllStringSubmatch(originalVal, -1)
-	for _, match := range matches {
-		originalVal = strings.Replace(originalVal, match[0], values[match[1]], 1)
+func replaceTags(seoSetting Setting, validTags []string, values map[string]string) Setting {
+	replace := func(str string) string {
+		re := regexp.MustCompile("{{([a-zA-Z0-9]*)}}")
+		matches := re.FindAllStringSubmatch(str, -1)
+		for _, match := range matches {
+			str = strings.Replace(str, match[0], values[match[1]], 1)
+		}
+		return str
 	}
-	return originalVal
+
+	seoSetting.Title = replace(seoSetting.Title)
+	seoSetting.Description = replace(seoSetting.Description)
+	seoSetting.Keywords = replace(seoSetting.Keywords)
+	seoSetting.Type = replace(seoSetting.Type)
+	seoSetting.OpenGraphURL = replace(seoSetting.OpenGraphURL)
+	seoSetting.OpenGraphType = replace(seoSetting.OpenGraphType)
+	for idx, metadata := range seoSetting.OpenGraphMetadata {
+		seoSetting.OpenGraphMetadata[idx] = OpenGraphMetadata{
+			Property: replace(metadata.Property),
+			Content:  replace(metadata.Content),
+		}
+	}
+	return seoSetting
 }

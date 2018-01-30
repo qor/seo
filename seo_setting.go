@@ -14,6 +14,7 @@ import (
 type QorSEOSettingInterface interface {
 	GetName() string
 	SetName(string)
+	GetSEOSetting() Setting
 	GetGlobalSetting() map[string]string
 	SetGlobalSetting(map[string]string)
 	GetSEOType() string
@@ -49,14 +50,19 @@ type Setting struct {
 	OpenGraphType     string
 	OpenGraphImage    media_library.MediaBox
 	OpenGraphMetadata []OpenGraphMetadata
-	EnabledCustomize  bool
-	GlobalSetting     map[string]string
+	EnabledCustomize  bool              `json:"-"`
+	GlobalSetting     map[string]string `json:"-"`
 }
 
 // OpenGraphMetadata open graph meta data
 type OpenGraphMetadata struct {
 	Property string
 	Content  string
+}
+
+// GetSEOSetting get seo setting
+func (s QorSEOSetting) GetSEOSetting() Setting {
+	return s.Setting
 }
 
 // GetName get QorSeoSetting's name
