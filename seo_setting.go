@@ -8,6 +8,7 @@ import (
 
 	"github.com/qor/admin"
 	"github.com/qor/media/media_library"
+	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
 
@@ -51,8 +52,8 @@ type Setting struct {
 	OpenGraphType     string
 	OpenGraphImage    media_library.MediaBox
 	OpenGraphMetadata []OpenGraphMetadata
-	EnabledCustomize  bool              `json:"-"`
-	GlobalSetting     map[string]string `json:"-"`
+	EnabledCustomize  bool
+	GlobalSetting     map[string]string
 }
 
 // OpenGraphMetadata open graph meta data
@@ -182,5 +183,25 @@ func (setting Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 		if res, ok := meta.GetBaseResource().(*admin.Resource); ok {
 			res.UseTheme("seo_meta")
 		}
+	}
+}
+
+// ConfigureQorResource configure resource for seo setting
+func (setting Setting) ConfigureQorResource(res resource.Resourcer) {
+	if res, ok := res.(*admin.Resource); ok {
+		res.Meta(&admin.Meta{Name: "Title", Label: "HTML Title"})
+		res.Meta(&admin.Meta{Name: "Description", Label: "Meta Description"})
+		res.Meta(&admin.Meta{Name: "Keywords", Label: "Meta Keywords"})
+		res.Meta(&admin.Meta{Name: "Type", Type: "hidden"})
+		res.Meta(&admin.Meta{Name: "EnabledCustomize", Type: "hidden", Valuer: func(interface{}, *qor.Context) interface{} { return "" }})
+		res.Meta(&admin.Meta{Name: "OpenGraphImage", Config: &media_library.MediaBoxConfig{
+			Max: 1,
+		}})
+
+		metadataResource := res.Meta(&admin.Meta{Name: "OpenGraphMetadata"}).Resource
+		metadataResource.NewAttrs(&admin.Section{Rows: [][]string{{"Property", "Content"}}})
+		metadataResource.EditAttrs(&admin.Section{Rows: [][]string{{"Property", "Content"}}})
+
+		res.EditAttrs("Title", "Description", "Keywords", "Type", "OpenGraphURL", "OpenGraphType", "OpenGraphImage", "OpenGraphMetadata", "EnabledCustomize")
 	}
 }

@@ -10,7 +10,6 @@ import (
 
 	"github.com/qor/admin"
 	"github.com/qor/media"
-	"github.com/qor/media/media_library"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
@@ -138,24 +137,6 @@ func (collection *Collection) ConfigureQorResource(res resource.Resourcer) {
 		collection.resource = res
 		if collection.SettingResource == nil {
 			collection.SettingResource = Admin.AddResource(&QorSEOSetting{}, &admin.Config{Invisible: true})
-		}
-
-		settingMeta := collection.SettingResource.Meta(&admin.Meta{Name: "Setting"})
-		if settingMeta != nil && settingMeta.Resource != nil {
-			settingMeta.Resource.Meta(&admin.Meta{Name: "Title", Label: "HTML Title"})
-			settingMeta.Resource.Meta(&admin.Meta{Name: "Description", Label: "Meta Description"})
-			settingMeta.Resource.Meta(&admin.Meta{Name: "Keywords", Label: "Meta Keywords"})
-			settingMeta.Resource.Meta(&admin.Meta{Name: "Type", Type: "hidden"})
-			settingMeta.Resource.Meta(&admin.Meta{Name: "EnabledCustomize", Type: "hidden"})
-			settingMeta.Resource.Meta(&admin.Meta{Name: "OpenGraphImage", Config: &media_library.MediaBoxConfig{
-				Max: 1,
-			}})
-
-			metadataResource := settingMeta.Resource.Meta(&admin.Meta{Name: "OpenGraphMetadata"}).Resource
-			metadataResource.NewAttrs(&admin.Section{Rows: [][]string{{"Property", "Content"}}})
-			metadataResource.EditAttrs(&admin.Section{Rows: [][]string{{"Property", "Content"}}})
-
-			settingMeta.Resource.EditAttrs("Title", "Description", "Keywords", "Type", "OpenGraphURL", "OpenGraphType", "OpenGraphImage", "OpenGraphMetadata", "EnabledCustomize")
 		}
 
 		collection.SettingResource.UseTheme("seo")
