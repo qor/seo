@@ -156,21 +156,34 @@ func (setting Setting) Value() (driver.Value, error) {
 func (setting Setting) String() string {
 	basicMeta := fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", setting.Title, setting.Description, setting.Keywords)
 
+	openGraphData := map[string]string{}
+
 	if setting.OpenGraphURL != "" {
-		basicMeta += fmt.Sprintf("<meta property=\"og:title\" content=\"%v\"/>", setting.Title)
-		basicMeta += fmt.Sprintf("<meta property=\"og:url\" content=\"%v\"/>", setting.OpenGraphURL)
+		openGraphData["og:url"] = setting.OpenGraphURL
 	}
 
 	if setting.OpenGraphType != "" {
-		basicMeta += fmt.Sprintf("<meta property=\"og:type\" content=\"%v\"/>", setting.OpenGraphType)
+		openGraphData["og:type"] = setting.OpenGraphType
 	}
 
 	if len(setting.OpenGraphImage.Files) > 0 {
-		basicMeta += fmt.Sprintf("<meta property=\"og:image\" content=\"%v\"/>", setting.OpenGraphImage.URL())
+		openGraphData["og:image"] = setting.OpenGraphImage.URL()
 	}
 
 	for _, metavalue := range setting.OpenGraphMetadata {
-		basicMeta += fmt.Sprintf("<meta property=\"%v\" content=\"%v\"/>", metavalue.Property, metavalue.Content)
+		openGraphData[metavalue.Property] = metavalue.Content
+	}
+
+	if _, ok := openGraphData["og:title"]; !ok {
+		openGraphData["og:title"] = setting.Title
+	}
+
+	if _, ok := openGraphData["og:description"]; !ok {
+		openGraphData["og:description"] = setting.Description
+	}
+
+	for key, value := range openGraphData {
+		basicMeta += fmt.Sprintf("<meta property=\"%v\" name=\"%v\" content=\"%v\"/>", key, key, value)
 	}
 
 	return basicMeta
