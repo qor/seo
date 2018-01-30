@@ -110,7 +110,7 @@ func (collection Collection) GetSEOSetting(context *qor.Context, name string, ob
 // Render render SEO Setting
 func (collection Collection) Render(context *qor.Context, name string, objects ...interface{}) template.HTML {
 	seoSetting := collection.GetSEOSetting(context, name, objects...)
-	return template.HTML(seoSetting.String())
+	return seoSetting.FormattedHTML(context)
 }
 
 // GetSEO get a Seo by name

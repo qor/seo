@@ -4,6 +4,8 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"html/template"
+	"net/url"
 	"time"
 
 	"github.com/qor/admin"
@@ -152,14 +154,29 @@ func (setting Setting) Value() (driver.Value, error) {
 	return string(result), err
 }
 
-// String return formated seo setting
-func (setting Setting) String() string {
+// FormattedHTML return formated seo setting as HTML
+func (setting Setting) FormattedHTML(context *qor.Context) template.HTML {
 	basicMeta := fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", setting.Title, setting.Description, setting.Keywords)
+
+	toAbsoluteURL := func(str string) string {
+		if u, err := url.Parse(str); err == nil {
+			if u.IsAbs() {
+				return str
+			}
+
+			if context.Request != nil {
+				u.Host = context.Request.Host
+				u.Scheme = context.Request.URL.Scheme
+			}
+			return u.String()
+		}
+		return str
+	}
 
 	openGraphData := map[string]string{}
 
 	if setting.OpenGraphURL != "" {
-		openGraphData["og:url"] = setting.OpenGraphURL
+		openGraphData["og:url"] = toAbsoluteURL(setting.OpenGraphURL)
 	}
 
 	if setting.OpenGraphType != "" {
@@ -167,7 +184,7 @@ func (setting Setting) String() string {
 	}
 
 	if len(setting.OpenGraphImage.Files) > 0 {
-		openGraphData["og:image"] = setting.OpenGraphImage.URL()
+		openGraphData["og:image"] = toAbsoluteURL(setting.OpenGraphImage.URL())
 	}
 
 	for _, metavalue := range setting.OpenGraphMetadata {
@@ -186,7 +203,7 @@ func (setting Setting) String() string {
 		basicMeta += fmt.Sprintf("<meta property=\"%v\" name=\"%v\" content=\"%v\"/>", key, key, value)
 	}
 
-	return basicMeta
+	return template.HTML(basicMeta)
 }
 
 // ConfigureQorMetaBeforeInitialize configure SEO setting for qor admin
