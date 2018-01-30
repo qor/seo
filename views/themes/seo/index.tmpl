@@ -34,7 +34,7 @@
         {{render_form (seo_global_setting_value $collection $seo_global_setting) (seo_global_setting_metas $collection)}}
 
         <div class="qor-form__actions">
-          <button class="qor-seo-submit mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">
+          <button class="qor-seo-submit mdl-button mdl-button--colored mdl-button--raised qor-button--save" type="submit">
             {{t "qor_admin.form.save_changes" "Save Changes"}}
           </button>
         </div>
@@ -57,7 +57,7 @@
           <div class="qor-form-container qor-fieldset">
             {{render_form . (seo_setting_metas $collection)}}
             <div class="qor-form__actions">
-              <button class="qor-seo-submit mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit" data-upgraded=",MaterialButton,MaterialRipple">{{t "qor_admin.form.save_changes" "Save Changes"}}<span class="mdl-button__ripple-container"><span class="mdl-ripple"></span></span></button>
+              <button class="qor-seo-submit mdl-button mdl-button--colored mdl-button--raised qor-button--save" type="submit" data-upgraded=",MaterialButton,MaterialRipple">{{t "qor_admin.form.save_changes" "Save Changes"}}<span class="mdl-button__ripple-container"><span class="mdl-ripple"></span></span></button>
             </div>
           </div>
         </form>
