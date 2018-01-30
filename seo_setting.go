@@ -46,16 +46,17 @@ type QorSEOSetting struct {
 
 // Setting defined meta's attributes
 type Setting struct {
-	Title             string `gorm:"size:4294967295"`
-	Description       string
-	Keywords          string
-	Type              string
-	OpenGraphURL      string
-	OpenGraphType     string
-	OpenGraphImage    media_library.MediaBox
-	OpenGraphMetadata []OpenGraphMetadata
-	EnabledCustomize  bool
-	GlobalSetting     map[string]string
+	Title                          string `gorm:"size:4294967295"`
+	Description                    string
+	Keywords                       string
+	Type                           string
+	OpenGraphURL                   string
+	OpenGraphType                  string
+	OpenGraphImage                 string
+	OpenGraphImageFromMediaLibrary media_library.MediaBox
+	OpenGraphMetadata              []OpenGraphMetadata
+	EnabledCustomize               bool
+	GlobalSetting                  map[string]string
 }
 
 // OpenGraphMetadata open graph meta data
@@ -183,8 +184,10 @@ func (setting Setting) FormattedHTML(context *qor.Context) template.HTML {
 		openGraphData["og:type"] = setting.OpenGraphType
 	}
 
-	if len(setting.OpenGraphImage.Files) > 0 {
-		openGraphData["og:image"] = toAbsoluteURL(setting.OpenGraphImage.URL())
+	if len(setting.OpenGraphImageFromMediaLibrary.Files) > 0 {
+		openGraphData["og:image"] = toAbsoluteURL(setting.OpenGraphImageFromMediaLibrary.URL())
+	} else {
+		openGraphData["og:image"] = setting.OpenGraphImage
 	}
 
 	for _, metavalue := range setting.OpenGraphMetadata {
@@ -224,7 +227,7 @@ func (setting Setting) ConfigureQorResource(res resource.Resourcer) {
 		res.Meta(&admin.Meta{Name: "Keywords", Label: "Meta Keywords"})
 		res.Meta(&admin.Meta{Name: "Type", Type: "hidden"})
 		res.Meta(&admin.Meta{Name: "EnabledCustomize", Type: "hidden", Valuer: func(interface{}, *qor.Context) interface{} { return "" }})
-		res.Meta(&admin.Meta{Name: "OpenGraphImage", Config: &media_library.MediaBoxConfig{
+		res.Meta(&admin.Meta{Name: "OpenGraphImageFromMediaLibrary", Label: "Open Graph Image", Config: &media_library.MediaBoxConfig{
 			Max: 1,
 		}})
 
@@ -232,6 +235,6 @@ func (setting Setting) ConfigureQorResource(res resource.Resourcer) {
 		metadataResource.NewAttrs(&admin.Section{Rows: [][]string{{"Property", "Content"}}})
 		metadataResource.EditAttrs(&admin.Section{Rows: [][]string{{"Property", "Content"}}})
 
-		res.EditAttrs("Title", "Description", "Keywords", "Type", "OpenGraphURL", "OpenGraphType", "OpenGraphImage", "OpenGraphMetadata", "EnabledCustomize")
+		res.EditAttrs("Title", "Description", "Keywords", "Type", "OpenGraphURL", "OpenGraphType", "OpenGraphImage", "OpenGraphImageFromMediaLibrary", "OpenGraphMetadata", "EnabledCustomize")
 	}
 }
