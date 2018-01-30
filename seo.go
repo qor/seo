@@ -110,8 +110,8 @@ func (collection Collection) GetSEOSetting(context *qor.Context, name string, ob
 
 // Render render SEO Setting
 func (collection Collection) Render(context *qor.Context, name string, objects ...interface{}) template.HTML {
-	metaValues := collection.GetMetaValues(context, name, objects...)
-	return template.HTML(fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", metaValues.Title, metaValues.Description, metaValues.Keywords))
+	seoSetting := collection.GetSEOSetting(context, name, objects...)
+	return template.HTML(seoSetting.String())
 }
 
 // GetSEO get a Seo by name

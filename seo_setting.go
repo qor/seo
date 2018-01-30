@@ -3,6 +3,7 @@ package seo
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/qor/admin"
@@ -150,8 +151,32 @@ func (setting Setting) Value() (driver.Value, error) {
 	return string(result), err
 }
 
+// String return formated seo setting
+func (setting Setting) String() string {
+	basicMeta := fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", setting.Title, setting.Description, setting.Keywords)
+
+	if setting.OpenGraphURL != "" {
+		basicMeta += fmt.Sprintf("<meta property=\"og:title\" content=\"%v\"/>", setting.Title)
+		basicMeta += fmt.Sprintf("<meta property=\"og:url\" content=\"%v\"/>", setting.OpenGraphURL)
+	}
+
+	if setting.OpenGraphType != "" {
+		basicMeta += fmt.Sprintf("<meta property=\"og:type\" content=\"%v\"/>", setting.OpenGraphType)
+	}
+
+	if len(setting.OpenGraphImage.Files) > 0 {
+		basicMeta += fmt.Sprintf("<meta property=\"og:image\" content=\"%v\"/>", setting.OpenGraphImage.URL())
+	}
+
+	for _, metavalue := range setting.OpenGraphMetadata {
+		basicMeta += fmt.Sprintf("<meta property=\"%v\" content=\"%v\"/>", metavalue.Property, metavalue.Content)
+	}
+
+	return basicMeta
+}
+
 // ConfigureQorMetaBeforeInitialize configure SEO setting for qor admin
-func (Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
+func (setting Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
 	if meta, ok := meta.(*admin.Meta); ok {
 		meta.Type = "seo"
 		if res, ok := meta.GetBaseResource().(*admin.Resource); ok {
