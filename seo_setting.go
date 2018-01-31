@@ -242,6 +242,19 @@ func (setting Setting) ConfigureQorResource(res resource.Resourcer) {
 		metadataResource.NewAttrs(&admin.Section{Rows: [][]string{{"Property", "Content"}}})
 		metadataResource.EditAttrs(&admin.Section{Rows: [][]string{{"Property", "Content"}}})
 
-		res.EditAttrs("Title", "Description", "Keywords", "Type", "OpenGraphURL", "OpenGraphType", "OpenGraphImageURL", "OpenGraphImageFromMediaLibrary", "OpenGraphMetadata", "EnabledCustomize")
+		res.EditAttrs(
+			&admin.Section{
+				Title: "Basic",
+				Rows:  [][]string{{"Title"}, {"Description"}, {"Keywords"}},
+			},
+			&admin.Section{
+				Title: "Open Graph Information",
+				Rows: [][]string{
+					{"OpenGraphURL", "OpenGraphType"},
+					{"OpenGraphImageURL", "OpenGraphImageFromMediaLibrary"}, {"OpenGraphMetadata"},
+				},
+			},
+			"Type", "EnabledCustomize",
+		)
 	}
 }
