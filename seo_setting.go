@@ -194,7 +194,7 @@ func (setting Setting) FormattedHTML(context *qor.Context) template.HTML {
 	if len(setting.OpenGraphImageFromMediaLibrary.Files) > 0 {
 		openGraphData["og:image"] = toAbsoluteURL(setting.OpenGraphImageFromMediaLibrary.URL())
 	} else {
-		openGraphData["og:image"] = setting.OpenGraphImageURL
+		openGraphData["og:image"] = toAbsoluteURL(setting.OpenGraphImageURL)
 	}
 
 	for _, metavalue := range setting.OpenGraphMetadata {
