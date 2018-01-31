@@ -52,7 +52,7 @@ type Setting struct {
 	Type                           string
 	OpenGraphURL                   string
 	OpenGraphType                  string
-	OpenGraphImage                 string
+	OpenGraphImageURL              string
 	OpenGraphImageFromMediaLibrary media_library.MediaBox
 	OpenGraphMetadata              []OpenGraphMetadata
 	EnabledCustomize               bool
@@ -165,10 +165,14 @@ func (setting Setting) FormattedHTML(context *qor.Context) template.HTML {
 				return str
 			}
 
-			if context.Request != nil {
+			if u.Host == "" && context.Request != nil {
 				u.Host = context.Request.Host
-				u.Scheme = context.Request.URL.Scheme
-				if u.Scheme == "" {
+			}
+
+			if u.Scheme == "" {
+				if context.Request != nil && context.Request.URL.Scheme != "" {
+					u.Scheme = context.Request.URL.Scheme
+				} else {
 					u.Scheme = "http"
 				}
 			}
@@ -190,7 +194,7 @@ func (setting Setting) FormattedHTML(context *qor.Context) template.HTML {
 	if len(setting.OpenGraphImageFromMediaLibrary.Files) > 0 {
 		openGraphData["og:image"] = toAbsoluteURL(setting.OpenGraphImageFromMediaLibrary.URL())
 	} else {
-		openGraphData["og:image"] = setting.OpenGraphImage
+		openGraphData["og:image"] = setting.OpenGraphImageURL
 	}
 
 	for _, metavalue := range setting.OpenGraphMetadata {
@@ -238,6 +242,6 @@ func (setting Setting) ConfigureQorResource(res resource.Resourcer) {
 		metadataResource.NewAttrs(&admin.Section{Rows: [][]string{{"Property", "Content"}}})
 		metadataResource.EditAttrs(&admin.Section{Rows: [][]string{{"Property", "Content"}}})
 
-		res.EditAttrs("Title", "Description", "Keywords", "Type", "OpenGraphURL", "OpenGraphType", "OpenGraphImage", "OpenGraphImageFromMediaLibrary", "OpenGraphMetadata", "EnabledCustomize")
+		res.EditAttrs("Title", "Description", "Keywords", "Type", "OpenGraphURL", "OpenGraphType", "OpenGraphImageURL", "OpenGraphImageFromMediaLibrary", "OpenGraphMetadata", "EnabledCustomize")
 	}
 }
