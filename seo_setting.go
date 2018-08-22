@@ -235,7 +235,8 @@ func (setting Setting) ConfigureQorResource(res resource.Resourcer) {
 		res.Meta(&admin.Meta{Name: "Type", Type: "hidden"})
 		res.Meta(&admin.Meta{Name: "EnabledCustomize", Type: "hidden", Valuer: func(interface{}, *qor.Context) interface{} { return "" }})
 		res.Meta(&admin.Meta{Name: "OpenGraphImageFromMediaLibrary", Label: "Open Graph Image", Config: &media_library.MediaBoxConfig{
-			Max: 1,
+			Max:       1,
+			AllowType: media_library.ALLOW_TYPE_IMAGE,
 		}})
 
 		metadataResource := res.Meta(&admin.Meta{Name: "OpenGraphMetadata"}).Resource
