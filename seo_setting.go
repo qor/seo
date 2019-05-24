@@ -1,10 +1,11 @@
 package seo
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
 	"html/template"
+	"log"
 	"net/url"
 	"time"
 
@@ -157,8 +158,6 @@ func (setting Setting) Value() (driver.Value, error) {
 
 // FormattedHTML return formated seo setting as HTML
 func (setting Setting) FormattedHTML(context *qor.Context) template.HTML {
-	basicMeta := fmt.Sprintf("<title>%s</title>\n<meta name=\"description\" content=\"%s\">\n<meta name=\"keywords\" content=\"%s\"/>", setting.Title, setting.Description, setting.Keywords)
-
 	toAbsoluteURL := func(str string) string {
 		if u, err := url.Parse(str); err == nil {
 			if u.IsAbs() {
@@ -178,7 +177,7 @@ func (setting Setting) FormattedHTML(context *qor.Context) template.HTML {
 			}
 			return u.String()
 		}
-		return str
+		return ""
 	}
 
 	openGraphData := map[string]string{}
@@ -209,12 +208,35 @@ func (setting Setting) FormattedHTML(context *qor.Context) template.HTML {
 		openGraphData["og:description"] = setting.Description
 	}
 
-	for key, value := range openGraphData {
-		basicMeta += fmt.Sprintf("<meta property=\"%v\" name=\"%v\" content=\"%v\"/>", key, key, value)
+	var buf bytes.Buffer
+	err := seoTmpl.Execute(&buf, map[string]interface{}{
+		"title":       setting.Title,
+		"description": setting.Description,
+		"keywords":    setting.Keywords,
+		"ogs":         openGraphData,
+	})
+	if err != nil {
+		var requestURL string
+		if context != nil && context.Request != nil && context.Request.URL != nil {
+			requestURL = context.Request.URL.String()
+		}
+		log.Printf("Error: exec seo tmpl has err (%v) in %s", err, requestURL)
+		return ""
 	}
 
-	return template.HTML(basicMeta)
+	return template.HTML(buf.String())
 }
+
+var seoTmpl = template.Must(
+	template.New("seo_tmpl").Parse(`<title>{{.title}}</title>
+<meta name="description" content="{{.description}}">
+<meta name="keywords" content="{{.keywords}}">
+{{range $key, $val := .ogs -}}
+{{if ne $val "" -}}
+<meta property="{{$key}}" name="{{$key}}" content="{{$val}}">
+{{end -}}
+{{end -}}`),
+)
 
 // ConfigureQorMetaBeforeInitialize configure SEO setting for qor admin
 func (setting Setting) ConfigureQorMetaBeforeInitialize(meta resource.Metaor) {
