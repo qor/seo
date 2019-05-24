@@ -1,6 +1,7 @@
 package seo
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -354,3 +355,35 @@ func createCategoryPageSetting(setting Setting) {
 		db.Save(&seoSetting)
 	}
 }
+
+func TestSeoTmpl(t *testing.T) {
+	var buf bytes.Buffer
+	err := seoTmpl.Execute(&buf, map[string]interface{}{
+		"title":       "<br>title",
+		"description": `<script>alert("exec");</script>description`,
+		"keywords":    `<meta name="keywords" content="keywords">keywords`,
+		"ogs": map[string]string{
+			"og:url":         "http://example_test.test/  a/  b/",
+			"og:title":       "<span>title</span>",
+			"og:type":        "type<br>",
+			"og:description": "",
+			"og:image":       "http://example_test.test/  a/  b.jpg",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if excepted != buf.String() {
+		t.Fatal(buf.String())
+	}
+}
+
+var excepted = `<title>&lt;br&gt;title</title>
+<meta name="description" content="&lt;script&gt;alert(&#34;exec&#34;);&lt;/script&gt;description">
+<meta name="keywords" content="&lt;meta name=&#34;keywords&#34; content=&#34;keywords&#34;&gt;keywords">
+<meta property="og:image" name="og:image" content="http://example_test.test/  a/  b.jpg">
+<meta property="og:title" name="og:title" content="&lt;span&gt;title&lt;/span&gt;">
+<meta property="og:type" name="og:type" content="type&lt;br&gt;">
+<meta property="og:url" name="og:url" content="http://example_test.test/  a/  b/">
+`
