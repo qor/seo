@@ -82,6 +82,25 @@ func seoAppendDefaultValue(context *admin.Context, seo *SEO, resourceSeoValue in
 		setting.Description = globalSetting.GetDescription()
 		setting.Keywords = globalSetting.GetKeywords()
 	}
+
+	if !setting.EnabledCustomize {
+		if setting.OpenGraphURL == "" {
+			setting.OpenGraphURL = globalSetting.GetOpenGraphURL()
+		}
+		if setting.OpenGraphType == "" {
+			setting.OpenGraphType = globalSetting.GetOpenGraphType()
+		}
+		if setting.OpenGraphImageURL == "" {
+			setting.OpenGraphImageURL = globalSetting.GetOpenGraphImageURL()
+		}
+		if setting.OpenGraphImageFromMediaLibrary.URL() == "" {
+			setting.OpenGraphImageFromMediaLibrary = globalSetting.GetOpenGraphImageFromMediaLibrary()
+		}
+		if len(setting.OpenGraphMetadata) == 0 {
+			setting.OpenGraphMetadata = globalSetting.GetOpenGraphMetadata()
+		}
+	}
+
 	return setting
 }
 

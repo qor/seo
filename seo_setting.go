@@ -30,6 +30,11 @@ type QorSEOSettingInterface interface {
 	GetDescription() string
 	GetKeywords() string
 	SetCollection(*Collection)
+	GetOpenGraphURL() string
+	GetOpenGraphType() string
+	GetOpenGraphImageURL() string
+	GetOpenGraphImageFromMediaLibrary() media_library.MediaBox
+	GetOpenGraphMetadata() []OpenGraphMetadata
 }
 
 // QorSEOSetting default seo model
@@ -109,6 +114,22 @@ func (s QorSEOSetting) GetGlobalSetting() map[string]string {
 // SetGlobalSetting set QorSeoSetting's globalSetting
 func (s *QorSEOSetting) SetGlobalSetting(globalSetting map[string]string) {
 	s.Setting.GlobalSetting = globalSetting
+}
+
+func (s QorSEOSetting) GetOpenGraphURL() string {
+	return s.Setting.OpenGraphURL
+}
+func (s QorSEOSetting) GetOpenGraphType() string {
+	return s.Setting.OpenGraphType
+}
+func (s QorSEOSetting) GetOpenGraphImageURL() string {
+	return s.Setting.OpenGraphImageURL
+}
+func (s QorSEOSetting) GetOpenGraphImageFromMediaLibrary() media_library.MediaBox {
+	return s.Setting.OpenGraphImageFromMediaLibrary
+}
+func (s QorSEOSetting) GetOpenGraphMetadata() []OpenGraphMetadata {
+	return s.Setting.OpenGraphMetadata
 }
 
 // GetTitle get Setting's title
