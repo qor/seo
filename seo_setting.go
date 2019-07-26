@@ -30,6 +30,8 @@ type QorSEOSettingInterface interface {
 	GetDescription() string
 	GetKeywords() string
 	SetCollection(*Collection)
+	GetOpenGraphTitle() string
+	GetOpenGraphDescription() string
 	GetOpenGraphURL() string
 	GetOpenGraphType() string
 	GetOpenGraphImageURL() string
@@ -56,6 +58,8 @@ type Setting struct {
 	Description                    string
 	Keywords                       string
 	Type                           string
+	OpenGraphTitle                 string
+	OpenGraphDescription           string
 	OpenGraphURL                   string
 	OpenGraphType                  string
 	OpenGraphImageURL              string
@@ -116,6 +120,12 @@ func (s *QorSEOSetting) SetGlobalSetting(globalSetting map[string]string) {
 	s.Setting.GlobalSetting = globalSetting
 }
 
+func (s QorSEOSetting) GetOpenGraphTitle() string {
+	return s.Setting.OpenGraphTitle
+}
+func (s QorSEOSetting) GetOpenGraphDescription() string {
+	return s.Setting.OpenGraphDescription
+}
 func (s QorSEOSetting) GetOpenGraphURL() string {
 	return s.Setting.OpenGraphURL
 }
@@ -222,11 +232,20 @@ func (setting Setting) FormattedHTML(context *qor.Context) template.HTML {
 	}
 
 	if _, ok := openGraphData["og:title"]; !ok {
-		openGraphData["og:title"] = setting.Title
+		title := setting.Title
+		if setting.OpenGraphTitle != "" {
+			title = setting.OpenGraphTitle
+		}
+		openGraphData["og:title"] = title
 	}
 
 	if _, ok := openGraphData["og:description"]; !ok {
-		openGraphData["og:description"] = setting.Description
+		desc := setting.Description
+		if setting.OpenGraphDescription != "" {
+			desc = setting.OpenGraphDescription
+		}
+
+		openGraphData["og:description"] = desc
 	}
 
 	var buf bytes.Buffer
@@ -294,6 +313,7 @@ func (setting Setting) ConfigureQorResource(res resource.Resourcer) {
 			&admin.Section{
 				Title: "Open Graph Information",
 				Rows: [][]string{
+					{"OpenGraphTitle", "OpenGraphDescription"},
 					{"OpenGraphURL", "OpenGraphType"},
 					{"OpenGraphImageURL", "OpenGraphImageFromMediaLibrary"}, {"OpenGraphMetadata"},
 				},

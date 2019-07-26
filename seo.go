@@ -176,6 +176,8 @@ func replaceTags(seoSetting Setting, validTags []string, values map[string]strin
 	seoSetting.Description = replace(seoSetting.Description)
 	seoSetting.Keywords = replace(seoSetting.Keywords)
 	seoSetting.Type = replace(seoSetting.Type)
+	seoSetting.OpenGraphTitle = replace(seoSetting.OpenGraphTitle)
+	seoSetting.OpenGraphDescription = replace(seoSetting.OpenGraphDescription)
 	seoSetting.OpenGraphURL = replace(seoSetting.OpenGraphURL)
 	seoSetting.OpenGraphImageURL = replace(seoSetting.OpenGraphImageURL)
 	seoSetting.OpenGraphType = replace(seoSetting.OpenGraphType)

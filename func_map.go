@@ -84,6 +84,12 @@ func seoAppendDefaultValue(context *admin.Context, seo *SEO, resourceSeoValue in
 	}
 
 	if !setting.EnabledCustomize {
+		if setting.OpenGraphTitle == "" {
+			setting.OpenGraphTitle = globalSetting.GetOpenGraphTitle()
+		}
+		if setting.OpenGraphDescription == "" {
+			setting.OpenGraphDescription = globalSetting.GetOpenGraphDescription()
+		}
 		if setting.OpenGraphURL == "" {
 			setting.OpenGraphURL = globalSetting.GetOpenGraphURL()
 		}
