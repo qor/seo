@@ -71,7 +71,7 @@ func (collection Collection) GetSEOSetting(context *qor.Context, name string, ob
 		seo        = collection.GetSEO(name)
 	)
 
-	// If passed objects has customzied SEO Setting field
+	// If passed objects has customized SEO Setting field
 	for _, obj := range objects {
 		if value := reflect.Indirect(reflect.ValueOf(obj)); value.IsValid() && value.Kind() == reflect.Struct {
 			for i := 0; i < value.NumField(); i++ {
