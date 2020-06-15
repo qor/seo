@@ -42,7 +42,7 @@
 
         bind: function() {
             this.$element
-                .on(EVENT_CLICK, CLASS_DEFAULT_INPUT, this.toggleDefault.bind(this))
+                .on(EVENT_CLICK, CLASS_DEFAULT_INPUT, this.toggleDefault)
                 .on(EVENT_CLICK, CLASS_SUBMIT, this.submitSeo.bind(this))
                 .on('click keyup', CLASS_TAGS_INPUT_NAME, this.tagInputsFocus.bind(this))
                 .on(EVENT_BLUR, CLASS_TAGS_INPUT_NAME, this.tagInputsBlur.bind(this))
@@ -56,8 +56,8 @@
                 .off(EVENT_BLUR);
         },
 
-        toggleDefault: function() {
-            this.$element.find(CLASS_SETTINGS).toggle();
+        toggleDefault: function(e) {
+            $(e.target).closest(".qor-seo").find(CLASS_SETTINGS).toggle();
         },
 
         tagInputsFocus: function() {
