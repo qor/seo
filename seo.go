@@ -89,7 +89,7 @@ func (collection Collection) GetSEOSetting(context *qor.Context, name string, ob
 				}
 
 				if value.Field(i).Type() == reflect.TypeOf(Setting{}) {
-					if hasMultiSeoField {
+					if hasMultiSeoField && currentSeoFieldName != "" {
 						if value.Type().Field(i).Name == currentSeoFieldName {
 							seoSetting = value.Field(i).Interface().(Setting)
 							break
