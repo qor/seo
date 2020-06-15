@@ -63,21 +63,41 @@ func (collection *Collection) RegisterSEO(seo *SEO) {
 	collection.registeredSEO = append(collection.registeredSEO, seo)
 }
 
+const currentSeoFieldIndicator = "CurrentSeoField"
+
 // GetSEOSetting return SEO title, keywords and description and open graph settings
 func (collection Collection) GetSEOSetting(context *qor.Context, name string, objects ...interface{}) Setting {
 	var (
-		seoSetting Setting
-		db         = context.GetDB()
-		seo        = collection.GetSEO(name)
+		seoSetting          Setting
+		db                  = context.GetDB()
+		seo                 = collection.GetSEO(name)
+		hasMultiSeoField    = false
+		currentSeoFieldName = ""
 	)
 
 	// If passed objects has customzied SEO Setting field
 	for _, obj := range objects {
 		if value := reflect.Indirect(reflect.ValueOf(obj)); value.IsValid() && value.Kind() == reflect.Struct {
 			for i := 0; i < value.NumField(); i++ {
+				// To support multiple SEO field in one struct, you must add a field with name of currentSeoFieldIndicator's value
+				// NOTE: this field must be set before the seo field.
+				// When rendering the page, set record.CurrentSeoField = "current seo name".
+				// If the value of CurrentSeoField is empty, use the first seo field as default.
+				if value.Type().Field(i).Name == currentSeoFieldIndicator {
+					hasMultiSeoField = true
+					currentSeoFieldName = value.Field(i).String()
+				}
+
 				if value.Field(i).Type() == reflect.TypeOf(Setting{}) {
-					seoSetting = value.Field(i).Interface().(Setting)
-					break
+					if hasMultiSeoField {
+						if value.Type().Field(i).Name == currentSeoFieldName {
+							seoSetting = value.Field(i).Interface().(Setting)
+							break
+						}
+					} else {
+						seoSetting = value.Field(i).Interface().(Setting)
+						break
+					}
 				}
 			}
 		}
