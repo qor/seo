@@ -88,6 +88,26 @@ seo.MicroProduct{
 }.Render()
 ```
 
+## To use multiple seo setting in one object
+Add a field called `CurrentSeoField` in the struct, it must be put in front of seo settings.
+
+```go
+type Obj struct {
+  // CurrentSeoField must be put before seo fields.
+  CurrentSeoField string `gorm:"-"`
+  JapaneseSeo             qor_seo.Setting
+  EnglishSeo              qor_seo.Setting
+}
+```
+
+Then when rendering seo, set the name of seo setting you want to render. E.g. `EnglishSeo`
+
+```go
+obj.CurrentSeoField = "EnglishSeo"
+```
+
+Then the proper seo setting will be used in this rendering. If has `CurrentSeoField` set but with no value or cannot find seo setting by given name. the first seo setting will be used as default.
+
 ## License
 
 Released under the [MIT License](http://opensource.org/licenses/MIT).
