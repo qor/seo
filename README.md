@@ -2,7 +2,10 @@
 
 The SEO library allows for the management and injection of dynamic data into HTML tags for the purpose of Search Engine Optimisation. Using the QOR Admin interface, an administrator can easily manage the content of an HTML page's title, description, and meta tags.
 
+[![Build Status](https://travis-ci.com/qor/seo.svg?branch=master)](https://travis-ci.com/qor/seo)
+
 [![GoDoc](https://godoc.org/github.com/qor/seo?status.svg)](https://godoc.org/github.com/qor/seo)
+
 
 ## Definition
 
