@@ -41,7 +41,7 @@ type QorSEOSettingInterface interface {
 
 // QorSEOSetting default seo model
 type QorSEOSetting struct {
-	Name        string `gorm:"primary_key"`
+	Name        string `gorm:"primary_key;size:128"`
 	Setting     Setting
 	IsGlobalSEO bool
 
