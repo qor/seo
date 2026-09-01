@@ -1,6 +1,6 @@
 module github.com/qor/seo
 
-go 1.25.0
+go 1.26
 
 require (
 	github.com/fatih/color v1.9.0
