@@ -14,7 +14,7 @@
     "go"
   ],
   "devDependencies": {
-    "@babel/core": "^7.24.4",
-    "@babel/preset-env": "^7.24.4"
+    "@babel/core": "^8.0.1",
+    "@babel/preset-env": "^8.0.2"
   }
 }
