@@ -1,6 +1,6 @@
 module github.com/qor/seo
 
-go 1.26.10
+go 1.26.11
 
 require (
 	github.com/fatih/color v1.9.0
@@ -37,7 +37,7 @@ require (
 	github.com/qor/validations v0.0.0-20171228122639-f364bca61b46 // indirect
 	github.com/theplant/cldr v0.0.0-20190423050709-9f76f7ce4ee8 // indirect
 	golang.org/x/image v0.45.0 // indirect
-	golang.org/x/net v0.60.0 // indirect
-	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
